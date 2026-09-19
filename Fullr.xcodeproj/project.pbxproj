@@ -29,6 +29,10 @@
 		17F49761305E5F1500F5C27E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F49760305E5F1500F5C27E /* SettingsView.swift */; };
 		17F49763305EF7C900F5C27E /* SupabaseClientProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F49762305EF7C900F5C27E /* SupabaseClientProvider.swift */; };
 		17F49766305F2BC200F5C27E /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 17F49765305F2BC200F5C27E /* Kingfisher */; };
+		F011A0010000000000000001 /* FullrStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F011A0010000000000000002 /* FullrStyle.swift */; };
+		F011A0020000000000000001 /* OfferingDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F011A0020000000000000002 /* OfferingDetailView.swift */; };
+		F011A0020000000000000003 /* Outfit.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 17F4976E305F43E100F5C27E /* Outfit.ttf */; };
+		F011A0020000000000000004 /* OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = 17F4976D305F43E100F5C27E /* OFL.txt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -54,6 +58,10 @@
 		17F4975E305E5F1500F5C27E /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		17F49760305E5F1500F5C27E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		17F49762305EF7C900F5C27E /* SupabaseClientProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseClientProvider.swift; sourceTree = "<group>"; };
+		17F4976D305F43E100F5C27E /* OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = OFL.txt; sourceTree = "<group>"; };
+		17F4976E305F43E100F5C27E /* Outfit.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Outfit.ttf; sourceTree = "<group>"; };
+		F011A0010000000000000002 /* FullrStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullrStyle.swift; sourceTree = "<group>"; };
+		F011A0020000000000000002 /* OfferingDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferingDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,6 +96,7 @@
 			isa = PBXGroup;
 			children = (
 				17F49718305E1D0200F5C27E /* Assets.xcassets */,
+				17F4976F305F43E100F5C27E /* Fonts */,
 				17F49719305E1D0200F5C27E /* RootView.swift */,
 				17F4971A305E1D0200F5C27E /* FullrApp.swift */,
 				17F4971B305E1D0200F5C27E /* Item.swift */,
@@ -103,6 +112,7 @@
 			isa = PBXGroup;
 			children = (
 				17F49742305E5EA500F5C27E /* AppViewModel.swift */,
+				F011A0010000000000000002 /* FullrStyle.swift */,
 				17F49744305E5EA600F5C27E /* FullrTabView.swift */,
 			);
 			path = App;
@@ -154,6 +164,7 @@
 				17F49754305E5EFB00F5C27E /* HomeViewModel.swift */,
 				17F49756305E5EFC00F5C27E /* FoodOfferingCard.swift */,
 				17F49758305E5EFC00F5C27E /* HomeView.swift */,
+				F011A0020000000000000002 /* OfferingDetailView.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -174,6 +185,16 @@
 				17F49760305E5F1500F5C27E /* SettingsView.swift */,
 			);
 			path = Settings;
+			sourceTree = "<group>";
+		};
+		17F4976F305F43E100F5C27E /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				17F4976D305F43E100F5C27E /* OFL.txt */,
+				17F4976E305F43E100F5C27E /* Outfit.ttf */,
+			);
+			name = Fonts;
+			path = Resources/Fonts;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -242,6 +263,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				17F4971D305E1D0200F5C27E /* Assets.xcassets in Resources */,
+				F011A0020000000000000003 /* Outfit.ttf in Resources */,
+				F011A0020000000000000004 /* OFL.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -253,9 +276,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				17F49749305E5EA700F5C27E /* OfferingFilter.swift in Sources */,
+				F011A0010000000000000001 /* FullrStyle.swift in Sources */,
 				17F49757305E5EFC00F5C27E /* FoodOfferingCard.swift in Sources */,
 				17F4971E305E1D0200F5C27E /* RootView.swift in Sources */,
 				17F49759305E5EFC00F5C27E /* HomeView.swift in Sources */,
+				F011A0020000000000000001 /* OfferingDetailView.swift in Sources */,
 				17F49751305E5EDB00F5C27E /* LoginViewModel.swift in Sources */,
 				17F49763305EF7C900F5C27E /* SupabaseClientProvider.swift in Sources */,
 				17F4971F305E1D0200F5C27E /* FullrApp.swift in Sources */,

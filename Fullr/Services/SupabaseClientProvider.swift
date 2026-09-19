@@ -364,7 +364,10 @@ struct SupabaseOffer: Decodable {
             dietaryTags: [],
             coordinate: coordinate,
             postedAt: postedTime ?? Date(),
-            imageURL: store.imageURL
+            imageURL: store.imageURL,
+            providerID: store.id,
+            providerDescription: store.description,
+            providerAddress: store.address
         )
     }
 

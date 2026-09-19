@@ -12,6 +12,9 @@ struct FullrApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                .font(FullrFont.regular(16))
+                .tint(FullrPalette.moss)
+                .preferredColorScheme(.light)
         }
     }
 }

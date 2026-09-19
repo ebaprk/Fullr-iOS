@@ -5,7 +5,7 @@ import Observation
 @Observable
 final class HomeViewModel: NSObject, CLLocationManagerDelegate {
     @ObservationIgnored private let locationManager = CLLocationManager()
-    private let offeringService: FoodOfferingServicing
+    let offeringService: FoodOfferingServicing
     private var filterTask: Task<Void, Never>?
     private var loadGeneration = 0
 

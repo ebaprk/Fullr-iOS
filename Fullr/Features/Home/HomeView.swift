@@ -1,215 +1,194 @@
 import SwiftUI
-import Kingfisher
 
 struct HomeView: View {
     @State var viewModel: HomeViewModel
-    @State private var showsFilters = true
+    @State private var showsFilters = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var headerScrollOffset: CGFloat = 0
+    @State private var restingScrollOffset: CGFloat?
 
     private var featuredOfferings: [FoodOffering] {
         Array(viewModel.offerings.prefix(5))
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                header
-                    .background(alignment: .top) {
-                        FullrPalette.cream
-                            .frame(height: 420)
-                            .offset(y: -420)
-                    }
-                VStack(alignment: .leading, spacing: 22) {
-                    searchBar
-                    if showsFilters {
-                        distanceFilter
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    header(topInset: geometry.safeAreaInsets.top)
+
+                    VStack(alignment: .leading, spacing: 24) {
+                        searchBar
+
+                        if showsFilters {
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack {
+                                    Text("Your pickup radius")
+                                        .font(FullrFont.medium(14, relativeTo: .subheadline))
+                                    Spacer()
+                                    Text("\(Int(viewModel.filter.maximumDistanceInMiles)) \(viewModel.filter.maximumDistanceInMiles == 1 ? "mile" : "miles")")
+                                        .font(FullrFont.regular(13, relativeTo: .caption))
+                                }
+                                .foregroundStyle(FullrPalette.moss)
+
+                                FullrDistancePicker(selectedDistance: viewModel.filter.maximumDistanceInMiles) { distance in
+                                    Task { await viewModel.updateDistance(distance) }
+                                }
+                            }
+                        }
+
                         providerCategories
+                        content
                     }
-                    content
+                    .frame(maxWidth: 680)
+                    .padding(.horizontal, 24)
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom, 28)
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 24)
+            }
+            .onScrollGeometryChange(for: CGFloat.self) { scroll in
+                scroll.contentOffset.y + scroll.contentInsets.top
+            } action: { _, offset in
+                // Normalize the initial safe-area inset before applying parallax.
+                if restingScrollOffset == nil { restingScrollOffset = offset }
+                headerScrollOffset = (restingScrollOffset ?? offset) - offset
+            }
+            .scrollIndicators(.hidden)
+            .scrollDismissesKeyboard(.interactively)
+            .ignoresSafeArea(edges: .top)
+            .overlay(alignment: .top) {
+                FullrPalette.cream
+                    .frame(height: geometry.safeAreaInsets.top)
+                    .frame(maxHeight: .infinity, alignment: .top)
+                    .ignoresSafeArea(edges: .top)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
             }
         }
-        .coordinateSpace(name: "homeScroll")
-        .background(FullrPalette.moss)
+        .background(FullrPalette.cream)
+        .font(FullrFont.regular(16))
+        .foregroundStyle(FullrPalette.pine)
         .toolbar(.hidden, for: .navigationBar)
         .task {
             viewModel.requestLocationIfNeeded()
             await viewModel.loadOfferings()
         }
         .refreshable { await viewModel.loadOfferings() }
-        .onChange(of: viewModel.filter.searchText) {
-            viewModel.scheduleLoadOfferings()
-        }
+        .onChange(of: viewModel.filter.searchText) { viewModel.scheduleLoadOfferings() }
         .alert("Could not load offerings", isPresented: errorIsPresented) {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
-        .ignoresSafeArea(.all, edges: .all)
     }
 
-    private var header: some View {
-        GeometryReader { proxy in
-            let topInset = proxy.safeAreaInsets.top
-            let controlTopPadding = max(topInset + 22, 96)
-            let headerOffset = proxy.frame(in: .named("homeScroll")).minY
-
-            ZStack(alignment: .top) {
-                FullrPalette.cream
-
-                VStack(spacing: 0) {
-                    Spacer(minLength: topInset + 92)
-                    HomeLandscape(scrollOffset: headerOffset)
-                        .frame(height: 190)
-                }
-
+    private func header(topInset: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 18) {
                 HStack(alignment: .center) {
-                    HStack(spacing: 8) {
-                        Text("FULLR")
-                            .font(.system(size: 39, weight: .heavy, design: .serif))
-                        Image("Food")
-                    }
-                    .foregroundStyle(FullrPalette.pine)
-
+                    FullrWordmark()
                     Spacer()
-
-                    Button { showsFilters.toggle() } label: {
-                        Image(systemName: showsFilters ? "line.3.horizontal.decrease.circle.fill" : "person.crop.circle.fill")
-                            .font(.title)
-                            .frame(width: 48, height: 48)
-                            .background(FullrPalette.moss, in: Circle())
-                            .foregroundStyle(FullrPalette.cream)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Filters")
+                    Text("Less waste.\nMore goodness.")
+                        .font(FullrFont.regular(12, relativeTo: .caption))
+                        .multilineTextAlignment(.trailing)
+                        .foregroundStyle(FullrPalette.moss)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, controlTopPadding)
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Good food.\nCloser to home.")
+                        .font(FullrFont.medium(38, relativeTo: .largeTitle))
+                        .tracking(-1.4)
+                        .lineSpacing(-2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
+                    Text("A little local. A lot to love.")
+                        .font(FullrFont.regular(15, relativeTo: .subheadline))
+                        .foregroundStyle(FullrPalette.moss)
+                }
             }
-        }
-        .frame(height: 326)
-        .clipShape(UnevenRoundedRectangle(bottomLeadingRadius: 28, bottomTrailingRadius: 28))
-    }
+            .frame(maxWidth: 680, alignment: .leading)
+            .padding(.horizontal, 26)
+            .padding(.top, topInset + 12)
+            .frame(maxWidth: .infinity)
 
-    private var statusPills: some View {
-        HStack(spacing: 10) {
-            InfoPill(title: "Free pickup", systemImage: "takeoutbag.and.cup.and.straw")
-            InfoPill(title: "\(viewModel.offerings.count) active", systemImage: "bolt.fill")
+            HomeLandscape(scrollOffset: headerScrollOffset)
+                .frame(height: 132)
+                .accessibilityHidden(true)
         }
-    }
-
-    private var homeIntro: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            statusPills
-
-            Text("Fresh offers from local stores")
-                .font(.title.bold())
-                .foregroundStyle(FullrPalette.cream)
-                .fixedSize(horizontal: false, vertical: true)
-        }
+        .background(FullrPalette.cream)
     }
 
     private var searchBar: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            homeIntro
-
+        HStack(spacing: 10) {
             HStack(spacing: 10) {
                 Image(systemName: "magnifyingglass")
+                    .font(FullrFont.medium(18))
                     .foregroundStyle(FullrPalette.moss)
-
-                TextField("Search food or providers", text: $viewModel.filter.searchText)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .submitLabel(.search)
-                    .foregroundStyle(FullrPalette.pine)
-                    .onSubmit { Task { await viewModel.loadOfferings() } }
+                TextField("Find something good", text: $viewModel.filter.searchText, prompt:
+                    Text("Find something good").foregroundStyle(FullrPalette.moss)
+                )
+                .font(FullrFont.regular(15, relativeTo: .subheadline))
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .submitLabel(.search)
+                .accessibilityLabel("Search food or providers")
+                .onSubmit { Task { await viewModel.loadOfferings() } }
 
                 if !viewModel.filter.searchText.isEmpty {
-                    Button {
-                        viewModel.filter.searchText = ""
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(FullrPalette.moss)
+                    Button { viewModel.filter.searchText = "" } label: {
+                        Image(systemName: "xmark")
+                            .font(FullrFont.medium(12))
+                            .frame(width: 32, height: 44)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Clear search")
                 }
             }
-            .padding(.horizontal, 14)
-            .frame(height: 50)
-            .background(FullrPalette.cream, in: RoundedRectangle(cornerRadius: 8))
+            .padding(.horizontal, 18)
+            .frame(minHeight: 54)
+            .overlay { Capsule().strokeBorder(FullrPalette.olive, lineWidth: 1) }
+
+            Button {
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.22)) { showsFilters.toggle() }
+            } label: {
+                Image(systemName: "slider.horizontal.3")
+                    .font(FullrFont.medium(19))
+                    .frame(width: 54, height: 54)
+                    .foregroundStyle(FullrPalette.cream)
+                    .background(FullrPalette.moss, in: Circle())
+            }
+            .buttonStyle(FullrPressStyle())
+            .accessibilityLabel(showsFilters ? "Hide distance filters" : "Show distance filters")
+            .accessibilityValue("Within \(Int(viewModel.filter.maximumDistanceInMiles)) \(viewModel.filter.maximumDistanceInMiles == 1 ? "mile" : "miles")")
         }
     }
 
     private var providerCategories: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "Browse by store", actionTitle: nil)
-
-            ScrollView(.horizontal) {
-                HStack(spacing: 12) {
-                    ProviderCategoryButton(
-                        title: "All",
-                        systemImage: "square.grid.2x2.fill",
-                        isSelected: viewModel.filter.providerType == nil
-                    ) {
-                        Task { await viewModel.updateProviderType(nil) }
-                    }
-
-                    ForEach(ProviderType.allCases) { providerType in
-                        ProviderCategoryButton(
-                            title: providerType.displayName,
-                            systemImage: providerType.systemImageName,
-                            isSelected: viewModel.filter.providerType == providerType
-                        ) {
-                            Task { await viewModel.updateProviderType(providerType) }
-                        }
+        ScrollView(.horizontal) {
+            HStack(spacing: 8) {
+                ProviderCategoryButton(title: "All food", systemImage: "sparkles", isSelected: viewModel.filter.providerType == nil) {
+                    Task { await viewModel.updateProviderType(nil) }
+                }
+                ForEach(ProviderType.allCases) { provider in
+                    ProviderCategoryButton(title: provider.displayName, systemImage: provider.systemImageName, isSelected: viewModel.filter.providerType == provider) {
+                        Task { await viewModel.updateProviderType(provider) }
                     }
                 }
-                .padding(.vertical, 2)
             }
-            .scrollIndicators(.hidden)
         }
-    }
-
-    private var distanceFilter: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "Distance", actionTitle: nil)
-
-            HStack(spacing: 0) {
-                ForEach(OfferingFilter.distanceOptionsInMiles, id: \.self) { distance in
-                    Button {
-                        Task { await viewModel.updateDistance(distance) }
-                    } label: {
-                        Text("\(Int(distance)) mi")
-                            .font(.subheadline.weight(.bold))
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 44)
-                            .background(distance == viewModel.filter.maximumDistanceInMiles ? FullrPalette.cream : FullrPalette.moss, in: Capsule())
-                            .foregroundStyle(distance == viewModel.filter.maximumDistanceInMiles ? FullrPalette.pine : FullrPalette.cream)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(4)
-            .background(FullrPalette.olive, in: Capsule())
-        }
+        .scrollIndicators(.hidden)
     }
 
     @ViewBuilder
     private var content: some View {
         if viewModel.isLoading {
-            ProgressView()
-                .tint(FullrPalette.cream)
+            ProgressView("Finding local goodness…")
+                .font(FullrFont.regular(15))
+                .tint(FullrPalette.moss)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 48)
         } else if viewModel.offerings.isEmpty {
-            ContentUnavailableView(
-                "No offerings found",
-                systemImage: "tray",
-                description: Text("Try widening your filters or checking again soon.")
-            )
-            .padding(.vertical, 48)
+            FullrEmptyState(title: "More good food soon", message: "Try another search or widen your pickup radius to find food nearby.", systemImage: "basket")
         } else {
             featuredSection
             nearbySection
@@ -217,71 +196,66 @@ struct HomeView: View {
     }
 
     private var featuredSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "Favorites", actionTitle: nil)
-
+        VStack(alignment: .leading, spacing: 16) {
+            sectionHeader(title: "Fresh finds", subtitle: "Good food, ready for a second chance.")
             ScrollView(.horizontal) {
-                HStack(spacing: 14) {
+                HStack(alignment: .top, spacing: 14) {
                     ForEach(featuredOfferings) { offering in
-                        StoreImageCard(offering: offering)
-                            .frame(width: 294, height: 204)
+                        NavigationLink {
+                            OfferingDetailView(offering: offering, offeringService: viewModel.offeringService)
+                        } label: {
+                            FeaturedOfferingCard(offering: offering)
+                                .frame(width: 274)
+                        }
+                        .buttonStyle(FullrPressStyle())
+                        .accessibilityHint("Opens offer details")
                     }
                 }
-                .padding(.vertical, 2)
+                .scrollTargetLayout()
             }
+            .scrollTargetBehavior(.viewAligned)
             .scrollIndicators(.hidden)
         }
     }
 
     private var nearbySection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "Offers", actionTitle: nil)
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .firstTextBaseline) {
+                sectionHeader(title: "Around you", subtitle: "Small pickups. Big difference.")
+                Spacer()
+                Text("\(viewModel.offerings.count) \(viewModel.offerings.count == 1 ? "offer" : "offers")")
+                    .font(FullrFont.medium(12, relativeTo: .caption))
+                    .foregroundStyle(FullrPalette.moss)
+            }
 
-            VStack(spacing: 12) {
+            LazyVStack(spacing: 12) {
                 ForEach(viewModel.offerings) { offering in
-                    FoodOfferingCard(offering: offering)
+                    NavigationLink {
+                        OfferingDetailView(offering: offering, offeringService: viewModel.offeringService)
+                    } label: {
+                        FoodOfferingCard(offering: offering)
+                    }
+                    .buttonStyle(FullrPressStyle())
+                    .accessibilityHint("Opens offer details")
                 }
             }
         }
     }
 
-    private func sectionHeader(title: String, actionTitle: String?) -> some View {
-        HStack {
+    private func sectionHeader(title: String, subtitle: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(.title3.bold())
-                .foregroundStyle(FullrPalette.cream)
-            Spacer()
-            if let actionTitle {
-                Button(actionTitle) { }
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(FullrPalette.gold)
-            }
+                .font(FullrFont.semibold(25, relativeTo: .title2))
+                .tracking(-0.6)
+                .accessibilityAddTraits(.isHeader)
+            Text(subtitle)
+                .font(FullrFont.regular(13, relativeTo: .subheadline))
+                .foregroundStyle(FullrPalette.moss)
         }
-    }
-
-    private var distanceBinding: Binding<Double> {
-        Binding(
-            get: { viewModel.filter.maximumDistanceInMiles },
-            set: { newValue in Task { await viewModel.updateDistance(newValue) } }
-        )
     }
 
     private var errorIsPresented: Binding<Bool> {
         Binding(get: { viewModel.errorMessage != nil }, set: { if !$0 { viewModel.errorMessage = nil } })
-    }
-}
-
-private struct InfoPill: View {
-    let title: String
-    let systemImage: String
-
-    var body: some View {
-        Label(title, systemImage: systemImage)
-            .font(.caption.weight(.semibold))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
-            .background(FullrPalette.olive, in: Capsule())
-            .foregroundStyle(FullrPalette.cream)
     }
 }
 
@@ -293,57 +267,64 @@ private struct ProviderCategoryButton: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 8) {
-                Image(systemName: systemImage)
-                    .font(.title3)
-                    .frame(width: 46, height: 46)
-                    .background(isSelected ? FullrPalette.gold : FullrPalette.cream, in: RoundedRectangle(cornerRadius: 8))
-                    .foregroundStyle(isSelected ? FullrPalette.pine : FullrPalette.moss)
-
-                Text(title)
-                    .font(.caption.weight(.semibold))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                    .foregroundStyle(FullrPalette.cream)
-            }
-            .frame(width: 74)
+            Label(title, systemImage: systemImage)
+                .font(FullrFont.medium(13, relativeTo: .subheadline))
+                .padding(.horizontal, 16)
+                .frame(minHeight: 44)
+                .foregroundStyle(isSelected ? FullrPalette.cream : FullrPalette.moss)
+                .background(isSelected ? FullrPalette.moss : FullrPalette.cream, in: Capsule())
+                .overlay { Capsule().strokeBorder(isSelected ? FullrPalette.moss : FullrPalette.olive, lineWidth: 1) }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(FullrPressStyle())
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
-private struct HomeLandscape: View {
+struct HomeLandscape: View {
     let scrollOffset: Double
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var parallaxOffset: Double {
-        min(max(scrollOffset, 0), 180)
+        // Counter-scroll the hills as the header leaves the screen; pull-down
+        // stretches the same layers. Positive offsets keep their bases covered.
+        reduceMotion ? 0 : min(abs(scrollOffset), 180)
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            FullrPalette.cream
+        GeometryReader { geometry in
+            ZStack(alignment: .bottom) {
+                FullrPalette.cream
 
-            BackMountain()
-                .fill(FullrPalette.olive)
-                .frame(height: 220)
-                .offset(y: 4 + parallaxOffset * 0.10)
+                Circle()
+                    .strokeBorder(FullrPalette.gold, lineWidth: 1)
+                    .frame(width: 50, height: 50)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.trailing, 45)
+                    .offset(y: -90 + parallaxOffset * 0.05)
 
-            ShadowMountain()
-                .fill(FullrPalette.ink)
-                .frame(height: 190)
-                .offset(y: 34 + parallaxOffset * 0.28)
+                BackMountain()
+                    .fill(FullrPalette.olive)
+                    .frame(height: 184)
+                    .offset(y: 10 + parallaxOffset * 0.10)
 
-            MiddleMountain()
-                .fill(FullrPalette.pine)
-                .frame(height: 176)
-                .offset(y: 38 + parallaxOffset * 0.45)
+                ShadowMountain()
+                    .fill(FullrPalette.moss)
+                    .frame(height: 148)
+                    .offset(y: 22 + parallaxOffset * 0.28)
 
-            ForegroundMountain()
-                .fill(FullrPalette.moss)
-                .frame(height: 190)
-                .offset(y: 74 + parallaxOffset * 0.68)
+                MiddleMountain()
+                    .fill(FullrPalette.pine)
+                    .frame(height: 132)
+                    .offset(y: 32 + parallaxOffset * 0.45)
+
+                ForegroundMountain()
+                    .fill(FullrPalette.cream)
+                    .frame(height: 108)
+                    .offset(y: 56 + parallaxOffset * 0.68)
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
+            .clipped()
         }
-        .clipped()
     }
 }
 
@@ -444,85 +425,6 @@ private struct ForegroundMountain: Shape {
     }
 }
 
-private struct StoreImageCard: View {
-    let offering: FoodOffering
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ZStack(alignment: .bottomLeading) {
-                StoreImage(url: offering.imageURL, providerType: offering.providerType)
-                    .frame(height: 128)
-                    .clipped()
-
-                LinearGradient(
-                    colors: [.clear, FullrPalette.pine.opacity(0.55)],
-                    startPoint: .center,
-                    endPoint: .bottom
-                )
-
-                Text(offering.providerName)
-                    .font(.title2.bold())
-                    .foregroundStyle(FullrPalette.cream)
-                    .lineLimit(2)
-                    .padding(14)
-            }
-
-            HStack {
-                Text(offering.title)
-                    .font(.subheadline.weight(.semibold))
-                    .lineLimit(1)
-                    .foregroundStyle(FullrPalette.pine)
-
-                Spacer()
-
-                Text(offering.badgeText)
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(FullrPalette.gold)
-            }
-            .padding(12)
-            .background(FullrPalette.cream)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-    }
-}
-
-private struct StoreImage: View {
-    let url: URL?
-    let providerType: ProviderType
-
-    var body: some View {
-        KFImage(url)
-            .placeholder { FoodImageArtwork(providerType: providerType) }
-            .resizable()
-            .fade(duration: 0.25)
-            .aspectRatio(contentMode: .fill)
-    }
-}
-
-private struct FoodImageArtwork: View {
-    let providerType: ProviderType
-
-    var body: some View {
-        ZStack {
-            FullrPalette.gold
-            HillArtwork()
-
-            HStack(spacing: 10) {
-                ForEach(0..<4, id: \.self) { index in
-                    Circle()
-                        .fill(index.isMultiple(of: 2) ? FullrPalette.cream : FullrPalette.olive)
-                        .frame(width: 58, height: 58)
-                        .overlay {
-                            Image(systemName: providerType.systemImageName)
-                                .font(.title3)
-                                .foregroundStyle(FullrPalette.pine)
-                        }
-                }
-            }
-            .offset(x: 26, y: -8)
-        }
-    }
-}
 
 #Preview {
     NavigationStack {

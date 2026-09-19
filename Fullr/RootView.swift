@@ -13,7 +13,12 @@ struct RootView: View {
     var body: some View {
         Group {
             if appViewModel.isRestoringSession {
-                ProgressView()
+                ProgressView("Finding your place…")
+                    .font(FullrFont.regular(16))
+                    .tint(FullrPalette.moss)
+                    .foregroundStyle(FullrPalette.moss)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(FullrPalette.cream)
             } else if appViewModel.isAuthenticated {
                 FullrTabView(appViewModel: appViewModel)
             } else {

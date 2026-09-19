@@ -1,74 +1,55 @@
 import SwiftUI
 import Kingfisher
 
-enum FullrPalette {
-    static let cream = Color(hex: 0xFFF8D9)
-    static let gold = Color(hex: 0xAD8820)
-    static let olive = Color(hex: 0x90844A)
-    static let moss = Color(hex: 0x444F24)
-    static let ink = Color(hex: 0x212413)
-    static let pine = Color(hex: 0x122311)
-}
-
-private extension Color {
-    init(hex: UInt) {
-        self.init(
-            red: Double((hex >> 16) & 0xFF) / 255,
-            green: Double((hex >> 8) & 0xFF) / 255,
-            blue: Double(hex & 0xFF) / 255
-        )
-    }
-}
-
 struct FoodOfferingCard: View {
     let offering: FoodOffering
+    var isCompact = false
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            ProviderBadge(imageURL: offering.imageURL, providerType: offering.providerType)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top, spacing: 14) {
+                OfferingImage(offering: offering)
+                    .frame(width: isCompact ? 64 : 82, height: isCompact ? 68 : 88)
+                    .clipShape(RoundedRectangle(cornerRadius: 17))
+                    .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 7) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(offering.title)
-                            .font(.headline)
-                            .lineLimit(2)
-
-                        Text(offering.providerName)
-                            .font(.subheadline)
-                            .foregroundStyle(FullrPalette.olive)
-                            .lineLimit(1)
-                    }
-
-                    Spacer(minLength: 8)
-
-                    Text(offering.badgeText)
-                        .font(.caption.weight(.semibold))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 5)
-                        .background(FullrPalette.cream, in: Capsule())
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(offering.providerName)
+                        .font(FullrFont.regular(12, relativeTo: .caption))
+                        .foregroundStyle(FullrPalette.moss)
+                        .lineLimit(2)
+                    Text(offering.title)
+                        .font(FullrFont.semibold(18))
                         .foregroundStyle(FullrPalette.pine)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(offering.badgeText)
+                        .font(FullrFont.medium(12, relativeTo: .caption))
+                        .foregroundStyle(FullrPalette.moss)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
 
+            if !isCompact {
                 Text(offering.description)
-                    .font(.subheadline)
+                    .font(FullrFont.regular(14, relativeTo: .subheadline))
                     .foregroundStyle(FullrPalette.moss)
                     .lineLimit(2)
-
-                HStack(spacing: 10) {
-                    Label(offering.pickupWindow, systemImage: "clock")
-                    Label(offering.quantityDescription, systemImage: "takeoutbag.and.cup.and.straw")
-                }
-                .font(.caption)
-                .foregroundStyle(FullrPalette.moss)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-
-                DietaryTagRow(tags: offering.dietaryTags)
             }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Label(offering.pickupWindow, systemImage: "clock")
+                if !isCompact { Label(offering.quantityDescription, systemImage: "basket") }
+            }
+            .font(FullrFont.regular(12, relativeTo: .caption))
+            .foregroundStyle(FullrPalette.moss)
+            .fixedSize(horizontal: false, vertical: true)
+
+            if !isCompact { DietaryTagRow(tags: offering.dietaryTags) }
         }
-        .padding(14)
-        .background(FullrPalette.cream, in: RoundedRectangle(cornerRadius: 8))
+        .padding(16)
+        .background(FullrPalette.cream, in: RoundedRectangle(cornerRadius: 24))
+        .overlay { RoundedRectangle(cornerRadius: 24).strokeBorder(FullrPalette.olive, lineWidth: 1) }
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -76,67 +57,49 @@ struct FeaturedOfferingCard: View {
     let offering: FoodOffering
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            ZStack(alignment: .topLeading) {
-                KFImage(offering.imageURL)
-                    .placeholder {
-                        ZStack {
-                            FullrPalette.gold
-                            HillArtwork()
-                        }
-                    }
-                    .resizable()
-                    .fade(duration: 0.25)
-                    .aspectRatio(contentMode: .fill)
-                    .frame(height: 128)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                VStack(alignment: .leading, spacing: 10) {
-                    Image(systemName: offering.providerType.systemImageName)
-                        .font(.title2)
-                        .frame(width: 42, height: 42)
-                        .background(FullrPalette.cream, in: RoundedRectangle(cornerRadius: 8))
+        VStack(alignment: .leading, spacing: 0) {
+            OfferingImage(offering: offering)
+                .frame(height: 154)
+                .clipped()
+                .overlay(alignment: .topLeading) {
+                    Label(offering.providerType.displayName, systemImage: offering.providerType.systemImageName)
+                        .font(FullrFont.medium(11, relativeTo: .caption2))
+                        .padding(.horizontal, 11)
+                        .padding(.vertical, 7)
                         .foregroundStyle(FullrPalette.pine)
-
-                    Spacer()
-
-                    Text(offering.providerType.displayName)
-                        .font(.caption.weight(.bold))
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 5)
                         .background(FullrPalette.cream, in: Capsule())
-                        .foregroundStyle(FullrPalette.pine)
+                        .padding(12)
                 }
-                .padding(12)
-            }
+                .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text(offering.title)
-                        .font(.headline)
-                        .lineLimit(2)
-
-                    Spacer()
-
+            VStack(alignment: .leading, spacing: 7) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(offering.providerName)
+                        .lineLimit(1)
+                    Spacer(minLength: 0)
                     Text(offering.badgeText)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(FullrPalette.gold)
+                        .fixedSize()
                 }
+                .font(FullrFont.regular(12, relativeTo: .caption))
+                .foregroundStyle(FullrPalette.moss)
 
-                Text(offering.providerName)
-                    .font(.subheadline)
-                    .foregroundStyle(FullrPalette.moss)
-                    .lineLimit(1)
-
-                Label(offering.pickupWindow, systemImage: "clock.fill")
-                    .font(.caption.weight(.semibold))
+                Text(offering.title)
+                    .font(FullrFont.semibold(20, relativeTo: .title3))
+                    .tracking(-0.4)
                     .foregroundStyle(FullrPalette.pine)
-                    .lineLimit(1)
+                    .lineLimit(2, reservesSpace: true)
+
+                Label(offering.pickupWindow, systemImage: "clock")
+                    .font(FullrFont.regular(12, relativeTo: .caption))
+                    .foregroundStyle(FullrPalette.moss)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.horizontal, 12)
-            .padding(.bottom, 12)
+            .padding(16)
         }
-        .background(FullrPalette.cream, in: RoundedRectangle(cornerRadius: 8))
+        .background(FullrPalette.cream)
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .overlay { RoundedRectangle(cornerRadius: 24).strokeBorder(FullrPalette.olive, lineWidth: 1) }
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -146,69 +109,46 @@ extension FoodOffering {
     }
 }
 
-private struct ProviderBadge: View {
-    let imageURL: URL?
-    let providerType: ProviderType
+struct OfferingImage: View {
+    let offering: FoodOffering
 
     var body: some View {
-        KFImage(imageURL)
-            .placeholder {
-                Image(systemName: providerType.systemImageName)
-                    .font(.title3)
-                    .frame(width: 54, height: 54)
-                    .background(FullrPalette.moss, in: RoundedRectangle(cornerRadius: 8))
-                    .foregroundStyle(FullrPalette.cream)
-            }
-            .resizable()
-            .fade(duration: 0.25)
-            .aspectRatio(contentMode: .fill)
-            .frame(width: 54, height: 54)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+        GeometryReader { geometry in
+            KFImage(offering.imageURL)
+                .placeholder {
+                    ZStack {
+                        FullrPalette.olive
+                        Image(systemName: offering.providerType.systemImageName)
+                            .font(FullrFont.regular(32, relativeTo: .title))
+                            .foregroundStyle(FullrPalette.cream)
+                    }
+                }
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                .clipped()
+        }
     }
 }
 
-private struct DietaryTagRow: View {
+struct DietaryTagRow: View {
     let tags: [DietaryTag]
 
     var body: some View {
         if !tags.isEmpty {
             ScrollView(.horizontal) {
-                HStack(spacing: 6) {
+                HStack(spacing: 8) {
                     ForEach(tags) { tag in
                         Text(tag.displayName)
-                            .font(.caption2.weight(.semibold))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(FullrPalette.moss, in: Capsule())
-                            .foregroundStyle(FullrPalette.cream)
+                            .font(FullrFont.medium(11, relativeTo: .caption2))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .foregroundStyle(FullrPalette.moss)
+                            .overlay { Capsule().strokeBorder(FullrPalette.olive, lineWidth: 1) }
                     }
                 }
             }
             .scrollIndicators(.hidden)
         }
-    }
-}
-
-struct HillArtwork: View {
-    var body: some View {
-        ZStack(alignment: .bottom) {
-            FullrPalette.olive
-
-            UnevenRoundedRectangle(topLeadingRadius: 0, bottomLeadingRadius: 8, bottomTrailingRadius: 8, topTrailingRadius: 0)
-                .fill(FullrPalette.ink)
-                .frame(height: 72)
-                .offset(y: 32)
-
-            UnevenRoundedRectangle(topLeadingRadius: 80, bottomLeadingRadius: 8, bottomTrailingRadius: 8, topTrailingRadius: 80)
-                .fill(FullrPalette.pine)
-                .frame(height: 82)
-                .offset(x: 70, y: 42)
-
-            UnevenRoundedRectangle(topLeadingRadius: 120, bottomLeadingRadius: 8, bottomTrailingRadius: 8, topTrailingRadius: 20)
-                .fill(FullrPalette.moss)
-                .frame(height: 62)
-                .offset(x: -84, y: 46)
-        }
-        .clipped()
     }
 }

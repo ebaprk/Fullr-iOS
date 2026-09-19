@@ -1,33 +1,31 @@
 import SwiftUI
 
 enum AppSection: String, CaseIterable, Hashable, Identifiable {
-    case home
-    case map
-    case settings
+    case home, map, settings
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
-        case .home: "Home"
+        case .home: "Discover"
         case .map: "Map"
-        case .settings: "Settings"
+        case .settings: "You"
         }
     }
 
     var systemImage: String {
         switch self {
-        case .home: "house"
+        case .home: "leaf"
         case .map: "map"
-        case .settings: "gearshape"
+        case .settings: "person.crop.circle"
         }
     }
 
     var selectedSystemImage: String {
         switch self {
-        case .home: "house.fill"
+        case .home: "leaf.fill"
         case .map: "map.fill"
-        case .settings: "gearshape.fill"
+        case .settings: "person.crop.circle.fill"
         }
     }
 }
@@ -35,45 +33,82 @@ enum AppSection: String, CaseIterable, Hashable, Identifiable {
 struct FullrTabView: View {
     let appViewModel: AppViewModel
     @State private var selectedSection: AppSection = .home
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @State private var homeViewModel: HomeViewModel
     @State private var mapViewModel: MapViewModel
 
     init(appViewModel: AppViewModel) {
         self.appViewModel = appViewModel
+        _homeViewModel = State(initialValue: HomeViewModel(offeringService: appViewModel.offeringService))
         _mapViewModel = State(initialValue: MapViewModel(offeringService: appViewModel.offeringService))
     }
 
     var body: some View {
-        TabView(selection: $selectedSection) {
-
-            NavigationStack {
-                MapScreenView(viewModel: mapViewModel)
-            }
-            .tabItem {
-                Label(AppSection.map.title, systemImage: selectedSection == .map ? AppSection.map.selectedSystemImage : AppSection.map.systemImage)
-            }
-            .tag(AppSection.map)
-            
-            NavigationStack {
-                HomeView(viewModel: HomeViewModel(offeringService: appViewModel.offeringService))
-            }
-            .tabItem {
-                Label(AppSection.home.title, systemImage: selectedSection == .home ? AppSection.home.selectedSystemImage : AppSection.home.systemImage)
-            }
-            .tag(AppSection.home)
-
-            NavigationStack {
-                SettingsView(viewModel: SettingsViewModel(user: appViewModel.currentUser)) {
-                    Task { await appViewModel.signOut() }
+        VStack(spacing: 0) {
+            TabView(selection: $selectedSection) {
+                NavigationStack {
+                    HomeView(viewModel: homeViewModel)
                 }
+                .tag(AppSection.home)
+                .toolbar(.hidden, for: .tabBar)
+
+                NavigationStack {
+                    MapScreenView(viewModel: mapViewModel)
+                }
+                .tag(AppSection.map)
+                .toolbar(.hidden, for: .tabBar)
+
+                NavigationStack {
+                    SettingsView(viewModel: SettingsViewModel(user: appViewModel.currentUser)) {
+                        Task { await appViewModel.signOut() }
+                    }
+                }
+                .tag(AppSection.settings)
+                .toolbar(.hidden, for: .tabBar)
             }
-            .tabItem {
-                Label(AppSection.settings.title, systemImage: selectedSection == .settings ? AppSection.settings.selectedSystemImage : AppSection.settings.systemImage)
-            }
-            .tag(AppSection.settings)
+            navigationBar.dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         }
-        .tint(FullrPalette.gold)
-        .task { mapViewModel.requestLocationIfNeeded() }
+        .font(FullrFont.regular(16))
+        .tint(FullrPalette.moss)
+        .background(FullrPalette.cream)
+    }
+
+    private var navigationBar: some View {
+        HStack(spacing: 8) {
+            ForEach(AppSection.allCases) { section in
+                Button { selectedSection = section } label: {
+                    let layout = dynamicTypeSize.isAccessibilitySize
+                        ? AnyLayout(VStackLayout(spacing: 6))
+                        : AnyLayout(HStackLayout(spacing: 7))
+                    layout {
+                        Image(systemName: selectedSection == section ? section.selectedSystemImage : section.systemImage)
+                            .font(FullrFont.medium(18))
+                        Text(section.title)
+                            .font(FullrFont.medium(13, relativeTo: .caption))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .foregroundStyle(selectedSection == section ? FullrPalette.cream : FullrPalette.moss)
+                    .background(selectedSection == section ? FullrPalette.moss : FullrPalette.cream, in: Capsule())
+                    .contentShape(Capsule())
+                }
+                .buttonStyle(FullrPressStyle())
+                .accessibilityLabel(section == .settings ? "Your settings" : section.title)
+                .accessibilityAddTraits(selectedSection == section ? .isSelected : [])
+            }
+        }
+        .frame(maxWidth: 680)
+        .padding(.horizontal, 20)
+        .padding(.top, 12)
+        .padding(.bottom, 8)
+        .frame(maxWidth: .infinity)
+        .background(FullrPalette.cream)
+        .overlay(alignment: .top) { Rectangle().fill(FullrPalette.olive).frame(height: 0.5) }
     }
 }
 
-#Preview { FullrTabView(appViewModel: AppViewModel(authService: MockAuthService())) }
+#Preview {
+    FullrTabView(appViewModel: AppViewModel(authService: MockAuthService(), offeringService: MockFoodOfferingService()))
+}

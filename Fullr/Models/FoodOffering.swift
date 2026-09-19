@@ -1,7 +1,7 @@
 import Foundation
 import MapKit
 
-struct FoodOffering: Identifiable, Equatable {
+struct FoodOffering: Identifiable, Hashable {
     let id: UUID
     let title: String
     let providerName: String
@@ -14,8 +14,24 @@ struct FoodOffering: Identifiable, Equatable {
     let coordinate: CLLocationCoordinate2D
     let postedAt: Date
     let imageURL: URL?
+    var providerID: UUID? = nil
+    var providerDescription = ""
+    var providerAddress = ""
 
     static func == (lhs: FoodOffering, rhs: FoodOffering) -> Bool { lhs.id == rhs.id }
+
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
+
+    func isFromSameProvider(as offering: FoodOffering) -> Bool {
+        if let providerID, let otherID = offering.providerID {
+            return providerID == otherID
+        }
+        // Older/sample records may not have a store ID. Keep branches separate.
+        return providerName == offering.providerName
+            && providerType == offering.providerType
+            && coordinate.latitude == offering.coordinate.latitude
+            && coordinate.longitude == offering.coordinate.longitude
+    }
 }
 
 enum ProviderType: String, CaseIterable, Identifiable {

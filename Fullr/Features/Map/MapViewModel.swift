@@ -7,7 +7,7 @@ import SwiftUI
 @Observable
 final class MapViewModel: NSObject, CLLocationManagerDelegate {
     @ObservationIgnored private let locationManager = CLLocationManager()
-    private let offeringService: FoodOfferingServicing
+    let offeringService: FoodOfferingServicing
 
     var offerings: [FoodOffering] = []
     var selectedOffering: FoodOffering?
