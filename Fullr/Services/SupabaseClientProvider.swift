@@ -46,6 +46,23 @@ struct FullrSupabaseClient {
         )
     }
 
+    func createStudentProfile(id: UUID, name: String, email: String) async throws {
+        let nameParts = name.split(separator: " ", maxSplits: 1).map(String.init)
+        let profile = StudentProfile(
+            studentID: id,
+            firstName: nameParts.first ?? "",
+            lastName: nameParts.dropFirst().first ?? "",
+            email: email
+        )
+
+        _ = try await post(
+            path: restURLComponents(path: "Student"),
+            body: profile,
+            prefer: "return=minimal",
+            expecting: EmptyResponse.self
+        )
+    }
+
     func refreshSession(refreshToken: String) async throws -> SupabaseAuthResponse {
         var components = authURLComponents(path: "token")
         components.queryItems = [URLQueryItem(name: "grant_type", value: "refresh_token")]
@@ -79,10 +96,16 @@ struct FullrSupabaseClient {
         return URLComponents(url: authURL, resolvingAgainstBaseURL: false) ?? URLComponents()
     }
 
+    private func restURLComponents(path: String) -> URLComponents {
+        let restURL = supabaseURL.appendingPathComponent("rest").appendingPathComponent("v1").appendingPathComponent(path)
+        return URLComponents(url: restURL, resolvingAgainstBaseURL: false) ?? URLComponents()
+    }
+
     private func post<RequestBody: Encodable, ResponseBody: Decodable>(
         path components: URLComponents,
         body: RequestBody,
         accessToken: String? = nil,
+        prefer: String? = nil,
         expecting responseType: ResponseBody.Type = ResponseBody.self
     ) async throws -> ResponseBody {
         guard let url = components.url else {
@@ -94,6 +117,9 @@ struct FullrSupabaseClient {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(anonKey, forHTTPHeaderField: "apikey")
         request.setValue("Bearer \(accessToken ?? anonKey)", forHTTPHeaderField: "Authorization")
+        if let prefer {
+            request.setValue(prefer, forHTTPHeaderField: "Prefer")
+        }
         request.httpBody = try JSONEncoder().encode(body)
 
         return try await send(request: request, expecting: responseType)
@@ -230,6 +256,20 @@ private struct SignUpCredentials: Encodable {
     let email: String
     let password: String
     let data: [String: String]?
+}
+
+private struct StudentProfile: Encodable {
+    let studentID: UUID
+    let firstName: String
+    let lastName: String
+    let email: String
+
+    private enum CodingKeys: String, CodingKey {
+        case studentID = "student_id"
+        case firstName = "first_name"
+        case lastName = "last_name"
+        case email
+    }
 }
 
 private struct RefreshCredentials: Encodable {

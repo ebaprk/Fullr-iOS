@@ -108,7 +108,8 @@ final class SupabaseAuthService: AuthServicing {
         let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         try validateEducationEmail(trimmedEmail)
-        _ = try await configuredClient.signUp(name: trimmedName, email: trimmedEmail, password: password)
+        let response = try await configuredClient.signUp(name: trimmedName, email: trimmedEmail, password: password)
+        try await configuredClient.createStudentProfile(id: response.user.id, name: trimmedName, email: trimmedEmail)
     }
 
     func signOut() async throws {
