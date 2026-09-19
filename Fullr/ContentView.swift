@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  Fullr
 //
-//  Created by Abe on 9/18/26.
+//  Created by Abe and Jonathan on 9/18/26.
 //
 
 import SwiftUI
