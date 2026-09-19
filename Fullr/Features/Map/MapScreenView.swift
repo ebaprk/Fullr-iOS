@@ -6,7 +6,9 @@ struct MapScreenView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            Map(initialPosition: .region(viewModel.region)) {
+            Map(position: $viewModel.cameraPosition) {
+                UserAnnotation()
+
                 ForEach(viewModel.offerings) { offering in
                     Marker(offering.title, systemImage: offering.providerType.systemImageName, coordinate: offering.coordinate)
                         .tint(.green)
@@ -23,7 +25,10 @@ struct MapScreenView: View {
         }
         .navigationTitle("Map")
         .toolbar { if viewModel.isLoading { ProgressView() } }
-        .task { await viewModel.loadOfferings() }
+        .task {
+            viewModel.requestLocationIfNeeded()
+            await viewModel.loadOfferings()
+        }
     }
 }
 
