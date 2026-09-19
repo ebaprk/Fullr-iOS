@@ -1,4 +1,5 @@
 import SwiftUI
+import Kingfisher
 
 struct HomeView: View {
     @State var viewModel: HomeViewModel
@@ -336,7 +337,15 @@ private struct StoreImageCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ZStack(alignment: .bottomLeading) {
-                FoodImageArtwork(providerType: offering.providerType)
+                StoreImage(url: offering.imageURL, providerType: offering.providerType)
+                    .frame(height: 128)
+                    .clipped()
+
+                LinearGradient(
+                    colors: [.clear, FullrPalette.pine.opacity(0.55)],
+                    startPoint: .center,
+                    endPoint: .bottom
+                )
 
                 Text(offering.providerName)
                     .font(.title2.bold())
@@ -361,6 +370,19 @@ private struct StoreImageCard: View {
             .background(FullrPalette.cream)
         }
         .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+private struct StoreImage: View {
+    let url: URL?
+    let providerType: ProviderType
+
+    var body: some View {
+        KFImage(url)
+            .placeholder { FoodImageArtwork(providerType: providerType) }
+            .resizable()
+            .fade(duration: 0.25)
+            .aspectRatio(contentMode: .fill)
     }
 }
 

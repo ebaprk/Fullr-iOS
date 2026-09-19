@@ -13,6 +13,7 @@ struct FoodOffering: Identifiable, Equatable {
     let dietaryTags: [DietaryTag]
     let coordinate: CLLocationCoordinate2D
     let postedAt: Date
+    let imageURL: URL?
 
     static func == (lhs: FoodOffering, rhs: FoodOffering) -> Bool { lhs.id == rhs.id }
 }
