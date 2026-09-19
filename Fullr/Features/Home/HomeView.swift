@@ -66,11 +66,9 @@ struct HomeView: View {
 
                 HStack(alignment: .center) {
                     HStack(spacing: 8) {
-                        Image(systemName: "leaf.circle.fill")
-                            .font(.system(size: 43, weight: .black))
-
                         Text("FULLR")
                             .font(.system(size: 39, weight: .heavy, design: .serif))
+                        Image("Food")
                     }
                     .foregroundStyle(FullrPalette.pine)
 
