@@ -1,4 +1,5 @@
 import SwiftUI
+import Kingfisher
 
 enum FullrPalette {
     static let cream = Color(hex: 0xFFF8D9)
@@ -24,7 +25,7 @@ struct FoodOfferingCard: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            ProviderBadge(providerType: offering.providerType)
+            ProviderBadge(imageURL: offering.imageURL, providerType: offering.providerType)
 
             VStack(alignment: .leading, spacing: 7) {
                 HStack(alignment: .top) {
@@ -77,11 +78,18 @@ struct FeaturedOfferingCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             ZStack(alignment: .topLeading) {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(FullrPalette.gold)
+                KFImage(offering.imageURL)
+                    .placeholder {
+                        ZStack {
+                            FullrPalette.gold
+                            HillArtwork()
+                        }
+                    }
+                    .resizable()
+                    .fade(duration: 0.25)
+                    .aspectRatio(contentMode: .fill)
                     .frame(height: 128)
-
-                HillArtwork()
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
 
                 VStack(alignment: .leading, spacing: 10) {
                     Image(systemName: offering.providerType.systemImageName)
@@ -139,14 +147,23 @@ extension FoodOffering {
 }
 
 private struct ProviderBadge: View {
+    let imageURL: URL?
     let providerType: ProviderType
 
     var body: some View {
-        Image(systemName: providerType.systemImageName)
-            .font(.title3)
+        KFImage(imageURL)
+            .placeholder {
+                Image(systemName: providerType.systemImageName)
+                    .font(.title3)
+                    .frame(width: 54, height: 54)
+                    .background(FullrPalette.moss, in: RoundedRectangle(cornerRadius: 8))
+                    .foregroundStyle(FullrPalette.cream)
+            }
+            .resizable()
+            .fade(duration: 0.25)
+            .aspectRatio(contentMode: .fill)
             .frame(width: 54, height: 54)
-            .background(FullrPalette.moss, in: RoundedRectangle(cornerRadius: 8))
-            .foregroundStyle(FullrPalette.cream)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
 

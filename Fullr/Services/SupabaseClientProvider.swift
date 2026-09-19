@@ -363,7 +363,8 @@ struct SupabaseOffer: Decodable {
             quantityDescription: "\(views) views",
             dietaryTags: [],
             coordinate: coordinate,
-            postedAt: postedTime ?? Date()
+            postedAt: postedTime ?? Date(),
+            imageURL: store.imageURL
         )
     }
 
@@ -395,6 +396,7 @@ struct SupabaseStore: Decodable {
     let address: String
     let description: String
     let storeType: String
+    let image: String?
 
     private enum CodingKeys: String, CodingKey {
         case id
@@ -403,6 +405,7 @@ struct SupabaseStore: Decodable {
         case address
         case description
         case storeType = "store_type"
+        case image
     }
 
     init(from decoder: Decoder) throws {
@@ -414,6 +417,12 @@ struct SupabaseStore: Decodable {
         address = (try? container.decodeIfPresent(String.self, forKey: .address)) ?? ""
         description = (try? container.decodeIfPresent(String.self, forKey: .description)) ?? ""
         storeType = (try? container.decodeIfPresent(String.self, forKey: .storeType)) ?? ""
+        image = try? container.decodeIfPresent(String.self, forKey: .image)
+    }
+
+    var imageURL: URL? {
+        guard let image, !image.isEmpty else { return nil }
+        return URL(string: image)
     }
 
     var providerType: ProviderType {
