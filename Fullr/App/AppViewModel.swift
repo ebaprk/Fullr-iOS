@@ -13,7 +13,7 @@ final class AppViewModel {
 
     var isAuthenticated: Bool { currentUser != nil }
 
-    init(authService: AuthServicing? = nil, offeringService: FoodOfferingServicing = MockFoodOfferingService()) {
+    init(authService: AuthServicing? = nil, offeringService: FoodOfferingServicing = SupabaseFoodOfferingService()) {
         self.authService = authService ?? SupabaseAuthService()
         self.offeringService = offeringService
     }

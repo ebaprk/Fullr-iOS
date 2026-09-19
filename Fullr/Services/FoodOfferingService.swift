@@ -27,7 +27,91 @@ struct MockFoodOfferingService: FoodOfferingServicing {
 }
 
 struct SupabaseFoodOfferingService: FoodOfferingServicing {
-    func fetchOfferings(filter: OfferingFilter) async throws -> [FoodOffering] {
-        try await MockFoodOfferingService().fetchOfferings(filter: filter)
+    private let client: FullrSupabaseClient?
+
+    init(client: FullrSupabaseClient? = SupabaseClientProvider.makeClient()) {
+        self.client = client
     }
+
+    func fetchOfferings(filter: OfferingFilter) async throws -> [FoodOffering] {
+        guard let client else { throw AuthenticationError.missingSupabaseConfiguration }
+        let offers = try await client.fetchOffers().filter(\.isAvailable)
+        let stores = try await client.fetchStores()
+        let storesByID = Dictionary(uniqueKeysWithValues: stores.map { ($0.id, $0) })
+
+        var offerings: [FoodOffering] = []
+        for offer in offers {
+            guard let store = storesByID[offer.storeID],
+                  let coordinate = store.addressCoordinate else {
+                continue
+            }
+
+            let offering = offer.foodOffering(store: store, coordinate: coordinate, userCoordinate: filter.userCoordinate)
+            if matches(offering, filter: filter) {
+                offerings.append(offering)
+            }
+        }
+
+        return offerings.sorted { $0.distanceInMiles < $1.distanceInMiles }
+    }
+
+    private func matches(_ offering: FoodOffering, filter: OfferingFilter) -> Bool {
+        let matchesSearch = filter.searchText.isEmpty
+            || offering.title.localizedStandardContains(filter.searchText)
+            || offering.providerName.localizedStandardContains(filter.searchText)
+            || offering.description.localizedStandardContains(filter.searchText)
+        let matchesProvider = filter.providerType == nil || offering.providerType == filter.providerType
+        let matchesDistance = filter.userCoordinate == nil || offering.distanceInMiles <= filter.maximumDistanceInMiles
+        let matchesDietary = filter.selectedDietaryTags.isEmpty || filter.selectedDietaryTags.isSubset(of: Set(offering.dietaryTags))
+        return matchesSearch && matchesProvider && matchesDistance && matchesDietary
+    }
+}
+
+private extension SupabaseStore {
+    var addressCoordinate: CLLocationCoordinate2D? {
+        guard let values = address.coordinatePair else { return nil }
+
+        let first = values.first
+        let second = values.second
+
+        if first.isLatitude, second.isLongitude {
+            return CLLocationCoordinate2D(latitude: first, longitude: second)
+        }
+
+        if first.isLongitude, second.isLatitude {
+            return CLLocationCoordinate2D(latitude: second, longitude: first)
+        }
+
+        return nil
+    }
+}
+
+private extension String {
+    var coordinatePair: (first: Double, second: Double)? {
+        let pattern = #"(-?\d+(?:\.\d+)?)\s*°?\s*([NSEWnsew])?"#
+        guard let regex = try? Regex(pattern) else { return nil }
+
+        let matches = matches(of: regex).prefix(2).compactMap { match -> Double? in
+            guard var value = Double(String(match.output[1].substring ?? "")) else { return nil }
+            if let direction = match.output[2].substring?.lowercased() {
+                switch direction {
+                case "s", "w":
+                    value = -abs(value)
+                case "n", "e":
+                    value = abs(value)
+                default:
+                    break
+                }
+            }
+            return value
+        }
+
+        guard matches.count == 2 else { return nil }
+        return (matches[0], matches[1])
+    }
+}
+
+private extension Double {
+    var isLatitude: Bool { (-90...90).contains(self) }
+    var isLongitude: Bool { (-180...180).contains(self) }
 }
