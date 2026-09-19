@@ -22,7 +22,7 @@ struct FoodOfferingCard: View {
 
                     Spacer(minLength: 8)
 
-                    Text(String(format: "%.1f mi", offering.distanceInMiles))
+                    Text(offering.badgeText)
                         .font(.caption.weight(.semibold))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 5)
@@ -88,7 +88,7 @@ struct FeaturedOfferingCard: View {
 
                     Spacer()
 
-                    Text(String(format: "%.1f mi", offering.distanceInMiles))
+                    Text(offering.badgeText)
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
                 }
@@ -116,6 +116,12 @@ struct FeaturedOfferingCard: View {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
+    }
+}
+
+private extension FoodOffering {
+    var badgeText: String {
+        distanceInMiles > 0 ? String(format: "%.1f mi", distanceInMiles) : providerType.displayName
     }
 }
 

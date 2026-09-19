@@ -91,6 +91,16 @@ struct FullrSupabaseClient {
         )
     }
 
+    func restGet<ResponseBody: Decodable>(
+        path: String,
+        queryItems: [URLQueryItem],
+        expecting responseType: ResponseBody.Type = ResponseBody.self
+    ) async throws -> ResponseBody {
+        var components = restURLComponents(path: path)
+        components.queryItems = queryItems
+        return try await get(path: components, accessToken: anonKey, expecting: responseType)
+    }
+
     private func authURLComponents(path: String) -> URLComponents {
         let authURL = supabaseURL.appendingPathComponent("auth").appendingPathComponent("v1").appendingPathComponent(path)
         return URLComponents(url: authURL, resolvingAgainstBaseURL: false) ?? URLComponents()
@@ -160,8 +170,38 @@ struct FullrSupabaseClient {
             return try JSONDecoder().decode(ResponseBody.self, from: Data("{}".utf8))
         }
 
-        return try JSONDecoder().decode(ResponseBody.self, from: data)
+        return try Self.decoder.decode(ResponseBody.self, from: data)
     }
+
+    private static var decoder: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let value = try container.decode(String.self)
+
+            if let date = iso8601DateFormatter.date(from: value) ?? fractionalISO8601DateFormatter.date(from: value) {
+                return date
+            }
+
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Expected an ISO 8601 date, but found \(value)."
+            )
+        }
+        return decoder
+    }
+
+    private static let iso8601DateFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter
+    }()
+
+    private static let fractionalISO8601DateFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
 }
 
 struct SupabaseStoredSession: Codable {

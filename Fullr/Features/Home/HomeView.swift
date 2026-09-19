@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     @State var viewModel: HomeViewModel
+    @State private var showsFilters = true
 
     private var featuredOfferings: [FoodOffering] {
         Array(viewModel.offerings.prefix(3))
@@ -12,8 +13,9 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 24) {
                 header
                 searchBar
-                providerCategories
-                quickFilters
+                if showsFilters {
+                    providerCategories
+                }
                 content
             }
             .padding(.horizontal, 16)
@@ -24,6 +26,9 @@ struct HomeView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task { await viewModel.loadOfferings() }
         .refreshable { await viewModel.loadOfferings() }
+        .onChange(of: viewModel.filter.searchText) {
+            viewModel.scheduleLoadOfferings()
+        }
         .alert("Could not load offerings", isPresented: errorIsPresented) {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {
@@ -35,19 +40,19 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Label("Near campus", systemImage: "location.fill")
+                    Label("Available now", systemImage: "takeoutbag.and.cup.and.straw.fill")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.primary)
 
-                    Text("Surplus food available now")
+                    Text("Fresh offers from local stores")
                         .font(.largeTitle.bold())
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
                 Spacer()
 
-                Button { } label: {
-                    Image(systemName: "slider.horizontal.3")
+                Button { showsFilters.toggle() } label: {
+                    Image(systemName: showsFilters ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
                         .font(.headline)
                         .frame(width: 42, height: 42)
                         .background(.white, in: RoundedRectangle(cornerRadius: 8))
@@ -59,7 +64,7 @@ struct HomeView: View {
 
             HStack(spacing: 10) {
                 InfoPill(title: "Free pickup", systemImage: "takeoutbag.and.cup.and.straw")
-                InfoPill(title: "\(viewModel.offerings.count) nearby", systemImage: "bolt.fill")
+                InfoPill(title: "\(viewModel.offerings.count) active", systemImage: "bolt.fill")
             }
         }
         .padding(.top, 18)
@@ -79,7 +84,6 @@ struct HomeView: View {
             if !viewModel.filter.searchText.isEmpty {
                 Button {
                     viewModel.filter.searchText = ""
-                    Task { await viewModel.loadOfferings() }
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(.secondary)
@@ -96,7 +100,7 @@ struct HomeView: View {
 
     private var providerCategories: some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "Browse by provider", actionTitle: nil)
+            sectionHeader(title: "Browse by store", actionTitle: nil)
 
             ScrollView(.horizontal) {
                 HStack(spacing: 12) {
@@ -124,35 +128,6 @@ struct HomeView: View {
         }
     }
 
-    private var quickFilters: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                sectionHeader(title: "Quick filters", actionTitle: nil)
-                Spacer()
-                Text("\(Int(viewModel.filter.maximumDistanceInMiles)) mi")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-            }
-
-            Slider(value: distanceBinding, in: 1...10, step: 1)
-                .tint(.green)
-
-            ScrollView(.horizontal) {
-                HStack(spacing: 8) {
-                    ForEach(DietaryTag.allCases) { tag in
-                        FilterChip(
-                            title: tag.displayName,
-                            isSelected: viewModel.filter.selectedDietaryTags.contains(tag)
-                        ) {
-                            Task { await viewModel.toggleDietaryTag(tag) }
-                        }
-                    }
-                }
-            }
-            .scrollIndicators(.hidden)
-        }
-    }
-
     @ViewBuilder
     private var content: some View {
         if viewModel.isLoading {
@@ -174,7 +149,7 @@ struct HomeView: View {
 
     private var featuredSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "Ready soon", actionTitle: "See all")
+            sectionHeader(title: "Ready soon", actionTitle: nil)
 
             ScrollView(.horizontal) {
                 HStack(spacing: 14) {
@@ -191,7 +166,7 @@ struct HomeView: View {
 
     private var nearbySection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "All nearby", actionTitle: nil)
+            sectionHeader(title: "All active offers", actionTitle: nil)
 
             VStack(spacing: 12) {
                 ForEach(viewModel.offerings) { offering in
@@ -212,13 +187,6 @@ struct HomeView: View {
                     .foregroundStyle(.green)
             }
         }
-    }
-
-    private var distanceBinding: Binding<Double> {
-        Binding(
-            get: { viewModel.filter.maximumDistanceInMiles },
-            set: { newValue in Task { await viewModel.updateDistance(newValue) } }
-        )
     }
 
     private var errorIsPresented: Binding<Bool> {
@@ -263,24 +231,6 @@ private struct ProviderCategoryButton: View {
                     .foregroundStyle(.primary)
             }
             .frame(width: 74)
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-private struct FilterChip: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Label(title, systemImage: isSelected ? "checkmark.circle.fill" : "circle")
-                .font(.subheadline.weight(.semibold))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 9)
-                .background(isSelected ? .green.opacity(0.14) : .white, in: Capsule())
-                .foregroundStyle(isSelected ? .green : .primary)
         }
         .buttonStyle(.plain)
     }
