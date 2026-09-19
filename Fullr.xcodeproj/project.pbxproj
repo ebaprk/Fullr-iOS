@@ -11,6 +11,22 @@
 		17F4971E305E1D0200F5C27E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F49719305E1D0200F5C27E /* ContentView.swift */; };
 		17F4971F305E1D0200F5C27E /* FullrApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F4971A305E1D0200F5C27E /* FullrApp.swift */; };
 		17F49720305E1D0200F5C27E /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F4971B305E1D0200F5C27E /* Item.swift */; };
+		17F49743305E5EA500F5C27E /* AppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F49742305E5EA500F5C27E /* AppViewModel.swift */; };
+		17F49745305E5EA600F5C27E /* FullrTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F49744305E5EA600F5C27E /* FullrTabView.swift */; };
+		17F49747305E5EA700F5C27E /* AppUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F49746305E5EA700F5C27E /* AppUser.swift */; };
+		17F49749305E5EA700F5C27E /* OfferingFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F49748305E5EA700F5C27E /* OfferingFilter.swift */; };
+		17F4974B305E5EC800F5C27E /* FoodOffering.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F4974A305E5EC800F5C27E /* FoodOffering.swift */; };
+		17F4974D305E5EC900F5C27E /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F4974C305E5EC900F5C27E /* AuthService.swift */; };
+		17F4974F305E5EC900F5C27E /* FoodOfferingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F4974E305E5EC900F5C27E /* FoodOfferingService.swift */; };
+		17F49751305E5EDB00F5C27E /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F49750305E5EDB00F5C27E /* LoginViewModel.swift */; };
+		17F49753305E5EDC00F5C27E /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F49752305E5EDC00F5C27E /* LoginView.swift */; };
+		17F49755305E5EFB00F5C27E /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F49754305E5EFB00F5C27E /* HomeViewModel.swift */; };
+		17F49757305E5EFC00F5C27E /* FoodOfferingCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F49756305E5EFC00F5C27E /* FoodOfferingCard.swift */; };
+		17F49759305E5EFC00F5C27E /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F49758305E5EFC00F5C27E /* HomeView.swift */; };
+		17F4975B305E5F1400F5C27E /* MapViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F4975A305E5F1400F5C27E /* MapViewModel.swift */; };
+		17F4975D305E5F1400F5C27E /* MapScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F4975C305E5F1400F5C27E /* MapScreenView.swift */; };
+		17F4975F305E5F1500F5C27E /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F4975E305E5F1500F5C27E /* SettingsViewModel.swift */; };
+		17F49761305E5F1500F5C27E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F49760305E5F1500F5C27E /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,6 +35,22 @@
 		17F49719305E1D0200F5C27E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		17F4971A305E1D0200F5C27E /* FullrApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullrApp.swift; sourceTree = "<group>"; };
 		17F4971B305E1D0200F5C27E /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
+		17F49742305E5EA500F5C27E /* AppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewModel.swift; sourceTree = "<group>"; };
+		17F49744305E5EA600F5C27E /* FullrTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullrTabView.swift; sourceTree = "<group>"; };
+		17F49746305E5EA700F5C27E /* AppUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUser.swift; sourceTree = "<group>"; };
+		17F49748305E5EA700F5C27E /* OfferingFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferingFilter.swift; sourceTree = "<group>"; };
+		17F4974A305E5EC800F5C27E /* FoodOffering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodOffering.swift; sourceTree = "<group>"; };
+		17F4974C305E5EC900F5C27E /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		17F4974E305E5EC900F5C27E /* FoodOfferingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodOfferingService.swift; sourceTree = "<group>"; };
+		17F49750305E5EDB00F5C27E /* LoginViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewModel.swift; sourceTree = "<group>"; };
+		17F49752305E5EDC00F5C27E /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		17F49754305E5EFB00F5C27E /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
+		17F49756305E5EFC00F5C27E /* FoodOfferingCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodOfferingCard.swift; sourceTree = "<group>"; };
+		17F49758305E5EFC00F5C27E /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		17F4975A305E5F1400F5C27E /* MapViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewModel.swift; sourceTree = "<group>"; };
+		17F4975C305E5F1400F5C27E /* MapScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapScreenView.swift; sourceTree = "<group>"; };
+		17F4975E305E5F1500F5C27E /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
+		17F49760305E5F1500F5C27E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,8 +87,88 @@
 				17F49719305E1D0200F5C27E /* ContentView.swift */,
 				17F4971A305E1D0200F5C27E /* FullrApp.swift */,
 				17F4971B305E1D0200F5C27E /* Item.swift */,
+				17F4973A305E5E8D00F5C27E /* App */,
+				17F4973B305E5E8E00F5C27E /* Models */,
+				17F4973C305E5E8E00F5C27E /* Services */,
+				17F4973D305E5E8E00F5C27E /* Features */,
 			);
 			path = Fullr;
+			sourceTree = "<group>";
+		};
+		17F4973A305E5E8D00F5C27E /* App */ = {
+			isa = PBXGroup;
+			children = (
+				17F49742305E5EA500F5C27E /* AppViewModel.swift */,
+				17F49744305E5EA600F5C27E /* FullrTabView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		17F4973B305E5E8E00F5C27E /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				17F49746305E5EA700F5C27E /* AppUser.swift */,
+				17F49748305E5EA700F5C27E /* OfferingFilter.swift */,
+				17F4974A305E5EC800F5C27E /* FoodOffering.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		17F4973C305E5E8E00F5C27E /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				17F4974C305E5EC900F5C27E /* AuthService.swift */,
+				17F4974E305E5EC900F5C27E /* FoodOfferingService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		17F4973D305E5E8E00F5C27E /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				17F4973E305E5E8F00F5C27E /* Login */,
+				17F4973F305E5E8F00F5C27E /* Home */,
+				17F49740305E5E9000F5C27E /* Map */,
+				17F49741305E5E9000F5C27E /* Settings */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		17F4973E305E5E8F00F5C27E /* Login */ = {
+			isa = PBXGroup;
+			children = (
+				17F49750305E5EDB00F5C27E /* LoginViewModel.swift */,
+				17F49752305E5EDC00F5C27E /* LoginView.swift */,
+			);
+			path = Login;
+			sourceTree = "<group>";
+		};
+		17F4973F305E5E8F00F5C27E /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				17F49754305E5EFB00F5C27E /* HomeViewModel.swift */,
+				17F49756305E5EFC00F5C27E /* FoodOfferingCard.swift */,
+				17F49758305E5EFC00F5C27E /* HomeView.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		17F49740305E5E9000F5C27E /* Map */ = {
+			isa = PBXGroup;
+			children = (
+				17F4975A305E5F1400F5C27E /* MapViewModel.swift */,
+				17F4975C305E5F1400F5C27E /* MapScreenView.swift */,
+			);
+			path = Map;
+			sourceTree = "<group>";
+		};
+		17F49741305E5E9000F5C27E /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				17F4975E305E5F1500F5C27E /* SettingsViewModel.swift */,
+				17F49760305E5F1500F5C27E /* SettingsView.swift */,
+			);
+			path = Settings;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -131,9 +243,25 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				17F49749305E5EA700F5C27E /* OfferingFilter.swift in Sources */,
+				17F49757305E5EFC00F5C27E /* FoodOfferingCard.swift in Sources */,
 				17F4971E305E1D0200F5C27E /* ContentView.swift in Sources */,
+				17F49759305E5EFC00F5C27E /* HomeView.swift in Sources */,
+				17F49751305E5EDB00F5C27E /* LoginViewModel.swift in Sources */,
 				17F4971F305E1D0200F5C27E /* FullrApp.swift in Sources */,
+				17F4974D305E5EC900F5C27E /* AuthService.swift in Sources */,
+				17F4975B305E5F1400F5C27E /* MapViewModel.swift in Sources */,
+				17F49745305E5EA600F5C27E /* FullrTabView.swift in Sources */,
+				17F49753305E5EDC00F5C27E /* LoginView.swift in Sources */,
+				17F4975D305E5F1400F5C27E /* MapScreenView.swift in Sources */,
+				17F4974F305E5EC900F5C27E /* FoodOfferingService.swift in Sources */,
+				17F49755305E5EFB00F5C27E /* HomeViewModel.swift in Sources */,
+				17F49743305E5EA500F5C27E /* AppViewModel.swift in Sources */,
+				17F4974B305E5EC800F5C27E /* FoodOffering.swift in Sources */,
+				17F49747305E5EA700F5C27E /* AppUser.swift in Sources */,
 				17F49720305E1D0200F5C27E /* Item.swift in Sources */,
+				17F4975F305E5F1500F5C27E /* SettingsViewModel.swift in Sources */,
+				17F49761305E5F1500F5C27E /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
