@@ -6,17 +6,20 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		17F4971D305E1D0200F5C27E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 17F49718305E1D0200F5C27E /* Assets.xcassets */; };
+		17F4971E305E1D0200F5C27E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F49719305E1D0200F5C27E /* ContentView.swift */; };
+		17F4971F305E1D0200F5C27E /* FullrApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F4971A305E1D0200F5C27E /* FullrApp.swift */; };
+		17F49720305E1D0200F5C27E /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F4971B305E1D0200F5C27E /* Item.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		17F49708305E1CFB00F5C27E /* Fullr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Fullr.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		17F49718305E1D0200F5C27E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		17F49719305E1D0200F5C27E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		17F4971A305E1D0200F5C27E /* FullrApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullrApp.swift; sourceTree = "<group>"; };
+		17F4971B305E1D0200F5C27E /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		17F4970A305E1CFB00F5C27E /* Fullr */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Fullr;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		17F49705305E1CFB00F5C27E /* Frameworks */ = {
@@ -32,7 +35,7 @@
 		17F496FF305E1CFB00F5C27E = {
 			isa = PBXGroup;
 			children = (
-				17F4970A305E1CFB00F5C27E /* Fullr */,
+				17F4971C305E1D0200F5C27E /* Fullr */,
 				17F49709305E1CFB00F5C27E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -43,6 +46,17 @@
 				17F49708305E1CFB00F5C27E /* Fullr.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		17F4971C305E1D0200F5C27E /* Fullr */ = {
+			isa = PBXGroup;
+			children = (
+				17F49718305E1D0200F5C27E /* Assets.xcassets */,
+				17F49719305E1D0200F5C27E /* ContentView.swift */,
+				17F4971A305E1D0200F5C27E /* FullrApp.swift */,
+				17F4971B305E1D0200F5C27E /* Item.swift */,
+			);
+			path = Fullr;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -59,9 +73,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				17F4970A305E1CFB00F5C27E /* Fullr */,
 			);
 			name = Fullr;
 			packageProductDependencies = (
@@ -109,6 +120,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				17F4971D305E1D0200F5C27E /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,6 +131,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				17F4971E305E1D0200F5C27E /* ContentView.swift in Sources */,
+				17F4971F305E1D0200F5C27E /* FullrApp.swift in Sources */,
+				17F49720305E1D0200F5C27E /* Item.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -258,6 +273,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -266,6 +282,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.bigba.Fullr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -289,6 +309,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -297,6 +318,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.bigba.Fullr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
