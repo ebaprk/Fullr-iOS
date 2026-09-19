@@ -13,6 +13,7 @@ final class MapViewModel: NSObject, CLLocationManagerDelegate {
     var selectedOffering: FoodOffering?
     var isLoading = false
     var cameraPosition: MapCameraPosition
+    var maximumDistanceInMiles = OfferingFilter.defaultMaximumDistanceInMiles
     private var userCoordinate: CLLocationCoordinate2D?
 
     private let defaultRegion = MKCoordinateRegion(
@@ -20,6 +21,11 @@ final class MapViewModel: NSObject, CLLocationManagerDelegate {
         span: MKCoordinateSpan(latitudeDelta: 0.04, longitudeDelta: 0.04)
     )
     private let userLocationSpan = MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+    private let offeringSpan = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+
+    var nearbyOfferings: [FoodOffering] {
+        Array(offerings.prefix(5))
+    }
 
     init(offeringService: FoodOfferingServicing) {
         self.offeringService = offeringService
@@ -34,8 +40,12 @@ final class MapViewModel: NSObject, CLLocationManagerDelegate {
         isLoading = true
         defer { isLoading = false }
         do {
-            offerings = try await offeringService.fetchOfferings(filter: OfferingFilter(userCoordinate: userCoordinate))
-            selectedOffering = offerings.first
+            offerings = try await offeringService.fetchOfferings(filter: OfferingFilter(maximumDistanceInMiles: maximumDistanceInMiles, userCoordinate: userCoordinate))
+            if let selectedOffering, offerings.contains(selectedOffering) {
+                self.selectedOffering = selectedOffering
+            } else {
+                selectedOffering = offerings.first
+            }
         } catch {
             offerings = []
         }
@@ -84,5 +94,15 @@ final class MapViewModel: NSObject, CLLocationManagerDelegate {
         cameraPosition = .region(MKCoordinateRegion(center: coordinate, span: userLocationSpan))
         manager.stopUpdatingLocation()
         Task { await loadOfferings() }
+    }
+
+    func selectOffering(_ offering: FoodOffering) {
+        selectedOffering = offering
+        cameraPosition = .region(MKCoordinateRegion(center: offering.coordinate, span: offeringSpan))
+    }
+
+    func updateDistance(_ distance: Double) async {
+        maximumDistanceInMiles = distance
+        await loadOfferings()
     }
 }

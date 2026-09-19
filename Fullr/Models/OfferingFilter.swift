@@ -2,10 +2,13 @@ import Foundation
 import CoreLocation
 
 struct OfferingFilter: Equatable {
+    static let defaultMaximumDistanceInMiles = 5.0
+    static let distanceOptionsInMiles = [1.0, 5.0, 10.0, 25.0]
+
     var searchText = ""
     var providerType: ProviderType?
     var selectedDietaryTags: Set<DietaryTag> = []
-    var maximumDistanceInMiles = 5.0
+    var maximumDistanceInMiles = defaultMaximumDistanceInMiles
     var userCoordinate: CLLocationCoordinate2D?
 
     static func == (lhs: OfferingFilter, rhs: OfferingFilter) -> Bool {

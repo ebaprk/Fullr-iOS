@@ -5,7 +5,7 @@ struct HomeView: View {
     @State private var showsFilters = true
 
     private var featuredOfferings: [FoodOffering] {
-        Array(viewModel.offerings.prefix(3))
+        Array(viewModel.offerings.prefix(5))
     }
 
     var body: some View {
@@ -14,6 +14,7 @@ struct HomeView: View {
                 header
                 searchBar
                 if showsFilters {
+                    distanceFilter
                     providerCategories
                 }
                 content
@@ -131,6 +132,19 @@ struct HomeView: View {
         }
     }
 
+    private var distanceFilter: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader(title: "Distance", actionTitle: nil)
+
+            Picker("Distance", selection: distanceBinding) {
+                ForEach(OfferingFilter.distanceOptionsInMiles, id: \.self) { distance in
+                    Text("\(Int(distance)) mi").tag(distance)
+                }
+            }
+            .pickerStyle(.segmented)
+        }
+    }
+
     @ViewBuilder
     private var content: some View {
         if viewModel.isLoading {
@@ -190,6 +204,13 @@ struct HomeView: View {
                     .foregroundStyle(.green)
             }
         }
+    }
+
+    private var distanceBinding: Binding<Double> {
+        Binding(
+            get: { viewModel.filter.maximumDistanceInMiles },
+            set: { newValue in Task { await viewModel.updateDistance(newValue) } }
+        )
     }
 
     private var errorIsPresented: Binding<Bool> {

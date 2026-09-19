@@ -16,11 +16,32 @@ struct MapScreenView: View {
             }
             .ignoresSafeArea(edges: .bottom)
 
-            if let selectedOffering = viewModel.selectedOffering {
-                FoodOfferingCard(offering: selectedOffering)
-                    .padding()
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
-                    .padding()
+            VStack(spacing: 0) {
+                distanceFilter
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+
+                Spacer()
+            }
+
+            if !viewModel.nearbyOfferings.isEmpty {
+                ScrollView(.horizontal) {
+                    HStack(spacing: 12) {
+                        ForEach(viewModel.nearbyOfferings) { offering in
+                            Button {
+                                viewModel.selectOffering(offering)
+                            } label: {
+                                FoodOfferingCard(offering: offering)
+                                    .frame(width: 320)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                }
+                .scrollIndicators(.hidden)
+                .background(.regularMaterial)
             }
         }
         .navigationTitle("Map")
@@ -29,6 +50,23 @@ struct MapScreenView: View {
             viewModel.requestLocationIfNeeded()
             await viewModel.pollOfferings()
         }
+    }
+
+    private var distanceFilter: some View {
+        Picker("Distance", selection: distanceBinding) {
+            ForEach(OfferingFilter.distanceOptionsInMiles, id: \.self) { distance in
+                Text("\(Int(distance)) mi").tag(distance)
+            }
+        }
+        .pickerStyle(.segmented)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+    }
+
+    private var distanceBinding: Binding<Double> {
+        Binding(
+            get: { viewModel.maximumDistanceInMiles },
+            set: { newValue in Task { await viewModel.updateDistance(newValue) } }
+        )
     }
 }
 
