@@ -38,13 +38,6 @@ struct FullrTabView: View {
 
     var body: some View {
         TabView(selection: $selectedSection) {
-            NavigationStack {
-                HomeView(viewModel: HomeViewModel(offeringService: appViewModel.offeringService))
-            }
-            .tabItem {
-                Label(AppSection.home.title, systemImage: selectedSection == .home ? AppSection.home.selectedSystemImage : AppSection.home.systemImage)
-            }
-            .tag(AppSection.home)
 
             NavigationStack {
                 MapScreenView(viewModel: MapViewModel(offeringService: appViewModel.offeringService))
@@ -53,6 +46,14 @@ struct FullrTabView: View {
                 Label(AppSection.map.title, systemImage: selectedSection == .map ? AppSection.map.selectedSystemImage : AppSection.map.systemImage)
             }
             .tag(AppSection.map)
+            
+            NavigationStack {
+                HomeView(viewModel: HomeViewModel(offeringService: appViewModel.offeringService))
+            }
+            .tabItem {
+                Label(AppSection.home.title, systemImage: selectedSection == .home ? AppSection.home.selectedSystemImage : AppSection.home.systemImage)
+            }
+            .tag(AppSection.home)
 
             NavigationStack {
                 SettingsView(viewModel: SettingsViewModel(user: appViewModel.currentUser)) {
