@@ -71,7 +71,7 @@ struct FullrTabView: View {
             }
             .tag(AppSection.settings)
         }
-        .tint(.green)
+        .tint(FullrPalette.gold)
         .task { mapViewModel.requestLocationIfNeeded() }
     }
 }

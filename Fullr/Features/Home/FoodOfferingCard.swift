@@ -1,5 +1,24 @@
 import SwiftUI
 
+enum FullrPalette {
+    static let cream = Color(hex: 0xFFF8D9)
+    static let gold = Color(hex: 0xAD8820)
+    static let olive = Color(hex: 0x90844A)
+    static let moss = Color(hex: 0x444F24)
+    static let ink = Color(hex: 0x212413)
+    static let pine = Color(hex: 0x122311)
+}
+
+private extension Color {
+    init(hex: UInt) {
+        self.init(
+            red: Double((hex >> 16) & 0xFF) / 255,
+            green: Double((hex >> 8) & 0xFF) / 255,
+            blue: Double(hex & 0xFF) / 255
+        )
+    }
+}
+
 struct FoodOfferingCard: View {
     let offering: FoodOffering
 
@@ -16,7 +35,7 @@ struct FoodOfferingCard: View {
 
                         Text(offering.providerName)
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(FullrPalette.olive)
                             .lineLimit(1)
                     }
 
@@ -26,13 +45,13 @@ struct FoodOfferingCard: View {
                         .font(.caption.weight(.semibold))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 5)
-                        .background(Color(.secondarySystemGroupedBackground), in: Capsule())
-                        .foregroundStyle(.secondary)
+                        .background(FullrPalette.cream, in: Capsule())
+                        .foregroundStyle(FullrPalette.pine)
                 }
 
                 Text(offering.description)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(FullrPalette.moss)
                     .lineLimit(2)
 
                 HStack(spacing: 10) {
@@ -40,7 +59,7 @@ struct FoodOfferingCard: View {
                     Label(offering.quantityDescription, systemImage: "takeoutbag.and.cup.and.straw")
                 }
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(FullrPalette.moss)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
 
@@ -48,8 +67,7 @@ struct FoodOfferingCard: View {
             }
         }
         .padding(14)
-        .background(.white, in: RoundedRectangle(cornerRadius: 8))
-        .shadow(color: .black.opacity(0.05), radius: 10, y: 4)
+        .background(FullrPalette.cream, in: RoundedRectangle(cornerRadius: 8))
     }
 }
 
@@ -60,14 +78,17 @@ struct FeaturedOfferingCard: View {
         VStack(alignment: .leading, spacing: 12) {
             ZStack(alignment: .topLeading) {
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(featureGradient)
+                    .fill(FullrPalette.gold)
                     .frame(height: 128)
+
+                HillArtwork()
 
                 VStack(alignment: .leading, spacing: 10) {
                     Image(systemName: offering.providerType.systemImageName)
                         .font(.title2)
                         .frame(width: 42, height: 42)
-                        .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: 8))
+                        .background(FullrPalette.cream, in: RoundedRectangle(cornerRadius: 8))
+                        .foregroundStyle(FullrPalette.pine)
 
                     Spacer()
 
@@ -75,7 +96,8 @@ struct FeaturedOfferingCard: View {
                         .font(.caption.weight(.bold))
                         .padding(.horizontal, 9)
                         .padding(.vertical, 5)
-                        .background(.white.opacity(0.92), in: Capsule())
+                        .background(FullrPalette.cream, in: Capsule())
+                        .foregroundStyle(FullrPalette.pine)
                 }
                 .padding(12)
             }
@@ -90,36 +112,27 @@ struct FeaturedOfferingCard: View {
 
                     Text(offering.badgeText)
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(FullrPalette.gold)
                 }
 
                 Text(offering.providerName)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(FullrPalette.moss)
                     .lineLimit(1)
 
                 Label(offering.pickupWindow, systemImage: "clock.fill")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(.green)
+                    .foregroundStyle(FullrPalette.pine)
                     .lineLimit(1)
             }
             .padding(.horizontal, 12)
             .padding(.bottom, 12)
         }
-        .background(.white, in: RoundedRectangle(cornerRadius: 8))
-        .shadow(color: .black.opacity(0.07), radius: 12, y: 5)
-    }
-
-    private var featureGradient: LinearGradient {
-        LinearGradient(
-            colors: [Color.green.opacity(0.78), Color.teal.opacity(0.72)],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+        .background(FullrPalette.cream, in: RoundedRectangle(cornerRadius: 8))
     }
 }
 
-private extension FoodOffering {
+extension FoodOffering {
     var badgeText: String {
         distanceInMiles > 0 ? String(format: "%.1f mi", distanceInMiles) : providerType.displayName
     }
@@ -132,8 +145,8 @@ private struct ProviderBadge: View {
         Image(systemName: providerType.systemImageName)
             .font(.title3)
             .frame(width: 54, height: 54)
-            .background(Color.green.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
-            .foregroundStyle(.green)
+            .background(FullrPalette.moss, in: RoundedRectangle(cornerRadius: 8))
+            .foregroundStyle(FullrPalette.cream)
     }
 }
 
@@ -149,12 +162,36 @@ private struct DietaryTagRow: View {
                             .font(.caption2.weight(.semibold))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(.green.opacity(0.12), in: Capsule())
-                            .foregroundStyle(.green)
+                            .background(FullrPalette.moss, in: Capsule())
+                            .foregroundStyle(FullrPalette.cream)
                     }
                 }
             }
             .scrollIndicators(.hidden)
         }
+    }
+}
+
+struct HillArtwork: View {
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            FullrPalette.olive
+
+            UnevenRoundedRectangle(topLeadingRadius: 0, bottomLeadingRadius: 8, bottomTrailingRadius: 8, topTrailingRadius: 0)
+                .fill(FullrPalette.ink)
+                .frame(height: 72)
+                .offset(y: 32)
+
+            UnevenRoundedRectangle(topLeadingRadius: 80, bottomLeadingRadius: 8, bottomTrailingRadius: 8, topTrailingRadius: 80)
+                .fill(FullrPalette.pine)
+                .frame(height: 82)
+                .offset(x: 70, y: 42)
+
+            UnevenRoundedRectangle(topLeadingRadius: 120, bottomLeadingRadius: 8, bottomTrailingRadius: 8, topTrailingRadius: 20)
+                .fill(FullrPalette.moss)
+                .frame(height: 62)
+                .offset(x: -84, y: 46)
+        }
+        .clipped()
     }
 }
