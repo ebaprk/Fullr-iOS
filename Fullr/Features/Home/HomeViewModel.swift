@@ -1,9 +1,10 @@
 import Foundation
+import CoreLocation
 import Observation
 
 @Observable
-@MainActor
-final class HomeViewModel {
+final class HomeViewModel: NSObject, CLLocationManagerDelegate {
+    @ObservationIgnored private let locationManager = CLLocationManager()
     private let offeringService: FoodOfferingServicing
     private var filterTask: Task<Void, Never>?
     private var loadGeneration = 0
@@ -15,6 +16,9 @@ final class HomeViewModel {
 
     init(offeringService: FoodOfferingServicing) {
         self.offeringService = offeringService
+        super.init()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
     }
 
     func loadOfferings() async {
@@ -49,6 +53,40 @@ final class HomeViewModel {
         if generation == loadGeneration {
             isLoading = false
         }
+    }
+
+    func requestLocationIfNeeded() {
+        switch locationManager.authorizationStatus {
+        case .notDetermined:
+            locationManager.requestWhenInUseAuthorization()
+        case .authorizedAlways, .authorizedWhenInUse:
+            if let coordinate = locationManager.location?.coordinate {
+                filter.userCoordinate = coordinate
+            }
+            locationManager.startUpdatingLocation()
+        case .denied, .restricted:
+            break
+        @unknown default:
+            break
+        }
+    }
+
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        switch manager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            manager.startUpdatingLocation()
+        case .denied, .notDetermined, .restricted:
+            break
+        @unknown default:
+            break
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let coordinate = locations.last?.coordinate else { return }
+        filter.userCoordinate = coordinate
+        manager.stopUpdatingLocation()
+        Task { await loadOfferings() }
     }
 
     func updateProviderType(_ providerType: ProviderType?) async {

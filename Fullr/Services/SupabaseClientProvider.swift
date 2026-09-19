@@ -1,4 +1,5 @@
 import Foundation
+import CoreLocation
 import Security
 
 enum SupabaseClientProvider {
@@ -60,6 +61,32 @@ struct FullrSupabaseClient {
             body: profile,
             prefer: "return=minimal",
             expecting: EmptyResponse.self
+        )
+    }
+
+    func fetchOffers() async throws -> [SupabaseOffer] {
+        var components = restURLComponents(path: "Offers")
+        components.queryItems = [
+            URLQueryItem(name: "select", value: "*")
+        ]
+
+        return try await get(
+            path: components,
+            accessToken: anonKey,
+            expecting: [SupabaseOffer].self
+        )
+    }
+
+    func fetchStores() async throws -> [SupabaseStore] {
+        var components = restURLComponents(path: "Stores")
+        components.queryItems = [
+            URLQueryItem(name: "select", value: "*")
+        ]
+
+        return try await get(
+            path: components,
+            accessToken: anonKey,
+            expecting: [SupabaseStore].self
         )
     }
 
@@ -284,6 +311,144 @@ struct SupabaseAuthUser: Codable {
         id = try container.decode(UUID.self, forKey: .id)
         email = try container.decodeIfPresent(String.self, forKey: .email)
         userMetadata = (try? container.decodeIfPresent([String: String].self, forKey: .userMetadata)) ?? [:]
+    }
+}
+
+struct SupabaseOffer: Decodable {
+    let offerID: UUID
+    let postedTime: Date?
+    let offerEndTime: Date?
+    let offerCompleted: Bool
+    let description: String
+    let storeID: UUID
+    let views: Int
+
+    private enum CodingKeys: String, CodingKey {
+        case offerID = "offer_id"
+        case postedTime = "posted_time"
+        case offerEndTime = "offer_end_time"
+        case offerCompleted = "offer_completed"
+        case description = "offer_description"
+        case storeID = "store_id"
+        case views
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        offerID = try container.decode(UUID.self, forKey: .offerID)
+        postedTime = container.decodeSupabaseDateIfPresent(forKey: .postedTime)
+        offerEndTime = container.decodeSupabaseDateIfPresent(forKey: .offerEndTime)
+        offerCompleted = (try? container.decodeIfPresent(Bool.self, forKey: .offerCompleted)) ?? false
+        description = (try? container.decodeIfPresent(String.self, forKey: .description)) ?? ""
+        storeID = try container.decode(UUID.self, forKey: .storeID)
+        views = (try? container.decodeIfPresent(Int.self, forKey: .views)) ?? 0
+    }
+
+    var isAvailable: Bool {
+        guard !offerCompleted else { return false }
+        guard let offerEndTime else { return true }
+        return offerEndTime > Date()
+    }
+
+    func foodOffering(store: SupabaseStore, coordinate: CLLocationCoordinate2D, userCoordinate: CLLocationCoordinate2D?) -> FoodOffering {
+        return FoodOffering(
+            id: offerID,
+            title: title,
+            providerName: store.name,
+            providerType: store.providerType,
+            description: description.isEmpty ? store.description : description,
+            pickupWindow: pickupWindow,
+            distanceInMiles: distanceInMiles(from: userCoordinate, to: coordinate),
+            quantityDescription: "\(views) views",
+            dietaryTags: [],
+            coordinate: coordinate,
+            postedAt: postedTime ?? Date()
+        )
+    }
+
+    private var title: String {
+        let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedDescription.isEmpty else { return "Food available" }
+        let firstSentence = trimmedDescription.split(separator: ".", maxSplits: 1).first.map(String.init) ?? trimmedDescription
+        return firstSentence.count > 48 ? "\(firstSentence.prefix(45))..." : firstSentence
+    }
+
+    private var pickupWindow: String {
+        guard let offerEndTime else { return "Pickup time TBD" }
+        return "Available until \(offerEndTime.formatted(date: .abbreviated, time: .shortened))"
+    }
+
+    private func distanceInMiles(from userCoordinate: CLLocationCoordinate2D?, to offerCoordinate: CLLocationCoordinate2D) -> Double {
+        guard let userCoordinate else { return 0 }
+
+        let userLocation = CLLocation(latitude: userCoordinate.latitude, longitude: userCoordinate.longitude)
+        let offerLocation = CLLocation(latitude: offerCoordinate.latitude, longitude: offerCoordinate.longitude)
+        return userLocation.distance(from: offerLocation) / 1_609.344
+    }
+}
+
+struct SupabaseStore: Decodable {
+    let id: UUID
+    let registeredAt: Date?
+    let name: String
+    let address: String
+    let description: String
+    let storeType: String
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case registeredAt = "registered_at"
+        case name
+        case address
+        case description
+        case storeType = "store_type"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        id = try container.decode(UUID.self, forKey: .id)
+        registeredAt = container.decodeSupabaseDateIfPresent(forKey: .registeredAt)
+        name = (try? container.decodeIfPresent(String.self, forKey: .name)) ?? "Store"
+        address = (try? container.decodeIfPresent(String.self, forKey: .address)) ?? ""
+        description = (try? container.decodeIfPresent(String.self, forKey: .description)) ?? ""
+        storeType = (try? container.decodeIfPresent(String.self, forKey: .storeType)) ?? ""
+    }
+
+    var providerType: ProviderType {
+        switch storeType.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case "restaurant", "food", "cafe", "café":
+            return .restaurant
+        case "pantry", "food pantry":
+            return .pantry
+        case "campus", "school", "university":
+            return .campus
+        default:
+            return .business
+        }
+    }
+}
+
+private extension KeyedDecodingContainer {
+    func decodeSupabaseDateIfPresent(forKey key: Key) -> Date? {
+        guard let value = try? decodeIfPresent(String.self, forKey: key) else { return nil }
+        return SupabaseDateFormatter.date(from: value)
+    }
+}
+
+private enum SupabaseDateFormatter {
+    private static let isoFormatter = ISO8601DateFormatter()
+
+    static func date(from value: String) -> Date? {
+        if let date = isoFormatter.date(from: value) {
+            return date
+        }
+
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ssXXXXX"
+        return formatter.date(from: value)
     }
 }
 

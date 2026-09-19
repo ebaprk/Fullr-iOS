@@ -35,12 +35,18 @@ enum AppSection: String, CaseIterable, Hashable, Identifiable {
 struct FullrTabView: View {
     let appViewModel: AppViewModel
     @State private var selectedSection: AppSection = .home
+    @State private var mapViewModel: MapViewModel
+
+    init(appViewModel: AppViewModel) {
+        self.appViewModel = appViewModel
+        _mapViewModel = State(initialValue: MapViewModel(offeringService: appViewModel.offeringService))
+    }
 
     var body: some View {
         TabView(selection: $selectedSection) {
 
             NavigationStack {
-                MapScreenView(viewModel: MapViewModel(offeringService: appViewModel.offeringService))
+                MapScreenView(viewModel: mapViewModel)
             }
             .tabItem {
                 Label(AppSection.map.title, systemImage: selectedSection == .map ? AppSection.map.selectedSystemImage : AppSection.map.systemImage)
@@ -66,6 +72,7 @@ struct FullrTabView: View {
             .tag(AppSection.settings)
         }
         .tint(.green)
+        .task { mapViewModel.requestLocationIfNeeded() }
     }
 }
 
