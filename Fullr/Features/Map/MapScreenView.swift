@@ -27,7 +27,7 @@ struct MapScreenView: View {
         .toolbar { if viewModel.isLoading { ProgressView() } }
         .task {
             viewModel.requestLocationIfNeeded()
-            await viewModel.loadOfferings()
+            await viewModel.pollOfferings()
         }
     }
 }

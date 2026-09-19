@@ -13,6 +13,7 @@ final class MapViewModel: NSObject, CLLocationManagerDelegate {
     var selectedOffering: FoodOffering?
     var isLoading = false
     var cameraPosition: MapCameraPosition
+    private var userCoordinate: CLLocationCoordinate2D?
 
     private let defaultRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 40.7306, longitude: -73.9950),
@@ -29,13 +30,27 @@ final class MapViewModel: NSObject, CLLocationManagerDelegate {
     }
 
     func loadOfferings() async {
+        guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
         do {
-            offerings = try await offeringService.fetchOfferings(filter: OfferingFilter())
+            offerings = try await offeringService.fetchOfferings(filter: OfferingFilter(userCoordinate: userCoordinate))
             selectedOffering = offerings.first
         } catch {
             offerings = []
+        }
+    }
+
+    func pollOfferings() async {
+        await loadOfferings()
+
+        while !Task.isCancelled {
+            do {
+                try await Task.sleep(for: .seconds(30))
+            } catch {
+                break
+            }
+            await loadOfferings()
         }
     }
 
@@ -65,7 +80,9 @@ final class MapViewModel: NSObject, CLLocationManagerDelegate {
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let coordinate = locations.last?.coordinate else { return }
+        userCoordinate = coordinate
         cameraPosition = .region(MKCoordinateRegion(center: coordinate, span: userLocationSpan))
         manager.stopUpdatingLocation()
+        Task { await loadOfferings() }
     }
 }

@@ -22,7 +22,10 @@ struct HomeView: View {
         .background(Color(.systemGroupedBackground))
         .navigationTitle("Home")
         .navigationBarTitleDisplayMode(.inline)
-        .task { await viewModel.loadOfferings() }
+        .task {
+            viewModel.requestLocationIfNeeded()
+            await viewModel.loadOfferings()
+        }
         .refreshable { await viewModel.loadOfferings() }
         .alert("Could not load offerings", isPresented: errorIsPresented) {
             Button("OK") { viewModel.errorMessage = nil }
