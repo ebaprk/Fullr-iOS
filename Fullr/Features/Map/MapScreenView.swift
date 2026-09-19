@@ -11,7 +11,7 @@ struct MapScreenView: View {
 
                 ForEach(viewModel.offerings) { offering in
                     Marker(offering.title, systemImage: offering.providerType.systemImageName, coordinate: offering.coordinate)
-                        .tint(.green)
+                        .tint(FullrPalette.gold)
                 }
             }
             .ignoresSafeArea(edges: .bottom)
@@ -53,20 +53,23 @@ struct MapScreenView: View {
     }
 
     private var distanceFilter: some View {
-        Picker("Distance", selection: distanceBinding) {
+        HStack(spacing: 0) {
             ForEach(OfferingFilter.distanceOptionsInMiles, id: \.self) { distance in
-                Text("\(Int(distance)) mi").tag(distance)
+                Button {
+                    Task { await viewModel.updateDistance(distance) }
+                } label: {
+                    Text("\(Int(distance)) mi")
+                        .font(.subheadline.weight(.bold))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 40)
+                        .background(distance == viewModel.maximumDistanceInMiles ? FullrPalette.cream : FullrPalette.moss, in: Capsule())
+                        .foregroundStyle(distance == viewModel.maximumDistanceInMiles ? FullrPalette.pine : FullrPalette.cream)
+                }
+                .buttonStyle(.plain)
             }
         }
-        .pickerStyle(.segmented)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
-    }
-
-    private var distanceBinding: Binding<Double> {
-        Binding(
-            get: { viewModel.maximumDistanceInMiles },
-            set: { newValue in Task { await viewModel.updateDistance(newValue) } }
-        )
+        .padding(4)
+        .background(FullrPalette.olive, in: Capsule())
     }
 }
 

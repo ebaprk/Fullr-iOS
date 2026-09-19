@@ -15,8 +15,8 @@ struct HomeView: View {
                 header
                     .background(alignment: .top) {
                         FullrPalette.cream
-                            .frame(height: 320)
-                            .offset(y: -220)
+                            .frame(height: 420)
+                            .offset(y: -420)
                     }
                 VStack(alignment: .leading, spacing: 22) {
                     searchBar
@@ -30,6 +30,7 @@ struct HomeView: View {
                 .padding(.bottom, 24)
             }
         }
+        .coordinateSpace(name: "homeScroll")
         .background(FullrPalette.moss)
         .toolbar(.hidden, for: .navigationBar)
         .task {
@@ -52,14 +53,15 @@ struct HomeView: View {
         GeometryReader { proxy in
             let topInset = proxy.safeAreaInsets.top
             let controlTopPadding = max(topInset + 22, 96)
+            let headerOffset = proxy.frame(in: .named("homeScroll")).minY
 
             ZStack(alignment: .top) {
                 FullrPalette.cream
 
                 VStack(spacing: 0) {
                     Spacer(minLength: topInset + 92)
-                    HomeLandscape()
-                        .frame(height: 150)
+                    HomeLandscape(scrollOffset: headerOffset)
+                        .frame(height: 190)
                 }
 
                 HStack(alignment: .center) {
@@ -88,7 +90,7 @@ struct HomeView: View {
                 .padding(.top, controlTopPadding)
             }
         }
-        .frame(height: 286)
+        .frame(height: 326)
         .clipShape(UnevenRoundedRectangle(bottomLeadingRadius: 28, bottomTrailingRadius: 28))
     }
 
@@ -176,13 +178,23 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 12) {
             sectionHeader(title: "Distance", actionTitle: nil)
 
-            Picker("Distance", selection: distanceBinding) {
+            HStack(spacing: 0) {
                 ForEach(OfferingFilter.distanceOptionsInMiles, id: \.self) { distance in
-                    Text("\(Int(distance)) mi").tag(distance)
+                    Button {
+                        Task { await viewModel.updateDistance(distance) }
+                    } label: {
+                        Text("\(Int(distance)) mi")
+                            .font(.subheadline.weight(.bold))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .background(distance == viewModel.filter.maximumDistanceInMiles ? FullrPalette.cream : FullrPalette.moss, in: Capsule())
+                            .foregroundStyle(distance == viewModel.filter.maximumDistanceInMiles ? FullrPalette.pine : FullrPalette.cream)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
-            .pickerStyle(.segmented)
-            .tint(FullrPalette.gold)
+            .padding(4)
+            .background(FullrPalette.olive, in: Capsule())
         }
     }
 
@@ -303,31 +315,134 @@ private struct ProviderCategoryButton: View {
 }
 
 private struct HomeLandscape: View {
+    let scrollOffset: Double
+
+    private var parallaxOffset: Double {
+        min(max(scrollOffset, 0), 180)
+    }
+
     var body: some View {
         ZStack(alignment: .bottom) {
             FullrPalette.cream
 
-            UnevenRoundedRectangle(topLeadingRadius: 160, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 80)
+            BackMountain()
                 .fill(FullrPalette.olive)
-                .frame(height: 110)
-                .offset(x: 118, y: 4)
+                .frame(height: 220)
+                .offset(y: 4 + parallaxOffset * 0.10)
 
-            UnevenRoundedRectangle(topLeadingRadius: 0, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 180)
+            ShadowMountain()
                 .fill(FullrPalette.ink)
-                .frame(height: 102)
-                .offset(x: -82, y: 28)
+                .frame(height: 190)
+                .offset(y: 34 + parallaxOffset * 0.28)
 
-            UnevenRoundedRectangle(topLeadingRadius: 120, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 12)
+            MiddleMountain()
                 .fill(FullrPalette.pine)
-                .frame(height: 76)
-                .offset(x: 116, y: 42)
+                .frame(height: 176)
+                .offset(y: 38 + parallaxOffset * 0.45)
 
-            UnevenRoundedRectangle(topLeadingRadius: 0, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 130)
+            ForegroundMountain()
                 .fill(FullrPalette.moss)
-                .frame(height: 72)
-                .offset(x: -104, y: 56)
+                .frame(height: 190)
+                .offset(y: 74 + parallaxOffset * 0.68)
         }
         .clipped()
+    }
+}
+
+private struct BackMountain: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+
+        path.move(to: CGPoint(x: rect.minX, y: rect.height * 0.58))
+        path.addCurve(
+            to: CGPoint(x: rect.width * 0.72, y: rect.height * 0.26),
+            control1: CGPoint(x: rect.width * 0.24, y: rect.height * 0.62),
+            control2: CGPoint(x: rect.width * 0.42, y: rect.height * 0.16)
+        )
+        path.addCurve(
+            to: CGPoint(x: rect.maxX, y: rect.height * 0.36),
+            control1: CGPoint(x: rect.width * 0.86, y: rect.height * 0.27),
+            control2: CGPoint(x: rect.width * 0.94, y: rect.height * 0.34)
+        )
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.closeSubpath()
+
+        return path
+    }
+}
+
+private struct ShadowMountain: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+
+        path.move(to: CGPoint(x: rect.minX, y: rect.height * 0.30))
+        path.addCurve(
+            to: CGPoint(x: rect.width * 0.62, y: rect.height * 0.42),
+            control1: CGPoint(x: rect.width * 0.18, y: rect.height * 0.15),
+            control2: CGPoint(x: rect.width * 0.38, y: rect.height * 0.24)
+        )
+        path.addCurve(
+            to: CGPoint(x: rect.maxX, y: rect.height * 0.18),
+            control1: CGPoint(x: rect.width * 0.78, y: rect.height * 0.52),
+            control2: CGPoint(x: rect.width * 0.90, y: rect.height * 0.28)
+        )
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.closeSubpath()
+
+        return path
+    }
+}
+
+private struct MiddleMountain: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+
+        path.move(to: CGPoint(x: rect.minX, y: rect.height * 0.58))
+        path.addCurve(
+            to: CGPoint(x: rect.width * 0.60, y: rect.height * 0.50),
+            control1: CGPoint(x: rect.width * 0.20, y: rect.height * 0.82),
+            control2: CGPoint(x: rect.width * 0.42, y: rect.height * 0.68)
+        )
+        path.addCurve(
+            to: CGPoint(x: rect.maxX, y: rect.height * 0.12),
+            control1: CGPoint(x: rect.width * 0.78, y: rect.height * 0.32),
+            control2: CGPoint(x: rect.width * 0.90, y: rect.height * 0.26)
+        )
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.closeSubpath()
+
+        return path
+    }
+}
+
+private struct ForegroundMountain: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+
+        path.move(to: CGPoint(x: rect.minX, y: rect.height * 0.28))
+        path.addCurve(
+            to: CGPoint(x: rect.width * 0.26, y: rect.height * 0.45),
+            control1: CGPoint(x: rect.width * 0.08, y: rect.height * 0.34),
+            control2: CGPoint(x: rect.width * 0.16, y: rect.height * 0.47)
+        )
+        path.addCurve(
+            to: CGPoint(x: rect.width * 0.72, y: rect.height * 0.42),
+            control1: CGPoint(x: rect.width * 0.42, y: rect.height * 0.58),
+            control2: CGPoint(x: rect.width * 0.58, y: rect.height * 0.52)
+        )
+        path.addCurve(
+            to: CGPoint(x: rect.maxX, y: rect.height * 0.24),
+            control1: CGPoint(x: rect.width * 0.84, y: rect.height * 0.34),
+            control2: CGPoint(x: rect.width * 0.92, y: rect.height * 0.20)
+        )
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.closeSubpath()
+
+        return path
     }
 }
 
