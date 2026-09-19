@@ -11,7 +11,7 @@ import SwiftUI
 struct FullrApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
         }
     }
 }

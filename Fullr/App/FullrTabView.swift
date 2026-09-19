@@ -69,4 +69,4 @@ struct FullrTabView: View {
     }
 }
 
-#Preview { FullrTabView(appViewModel: AppViewModel()) }
+#Preview { FullrTabView(appViewModel: AppViewModel(authService: MockAuthService())) }
