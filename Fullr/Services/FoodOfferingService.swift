@@ -3,6 +3,7 @@ import MapKit
 
 protocol FoodOfferingServicing {
     func fetchOfferings(filter: OfferingFilter) async throws -> [FoodOffering]
+    func incrementViews(for offerID: UUID) async throws
 }
 
 struct MockFoodOfferingService: FoodOfferingServicing {
@@ -15,6 +16,8 @@ struct MockFoodOfferingService: FoodOfferingServicing {
             return matchesSearch && matchesProvider && matchesDistance && matchesDietary
         }
     }
+
+    func incrementViews(for offerID: UUID) async throws { }
 
     private var sampleOfferings: [FoodOffering] {
         [
@@ -53,6 +56,11 @@ struct SupabaseFoodOfferingService: FoodOfferingServicing {
         }
 
         return offerings.sorted { $0.distanceInMiles < $1.distanceInMiles }
+    }
+
+    func incrementViews(for offerID: UUID) async throws {
+        guard let client else { throw AuthenticationError.missingSupabaseConfiguration }
+        try await client.incrementOfferViews(for: offerID)
     }
 
     private func matches(_ offering: FoodOffering, filter: OfferingFilter) -> Bool {
