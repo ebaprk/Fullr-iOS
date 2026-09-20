@@ -99,12 +99,12 @@ struct HomeView: View {
             .padding(.horizontal, 26)
             .padding(.top, topInset + 12)
             .frame(maxWidth: .infinity)
+            .zIndex(-1)
 
             HomeLandscape(scrollOffset: headerScrollOffset)
-                .frame(height: 132)
+                .frame(height: 150)
                 .accessibilityHidden(true)
         }
-        .background(FullrPalette.cream)
     }
 
     private var searchBar: some View {
@@ -280,7 +280,7 @@ struct HomeLandscape: View {
     private var parallaxOffset: Double {
         // Counter-scroll the hills as the header leaves the screen; pull-down
         // stretches the same layers. Positive offsets keep their bases covered.
-        reduceMotion ? 0 : min(abs(scrollOffset), 180)
+        reduceMotion ? 0 : max(scrollOffset, -70)
     }
 
     var body: some View {
