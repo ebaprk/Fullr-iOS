@@ -54,7 +54,7 @@ struct FullrWordmark: View {
     var size: CGFloat = 34
 
     var body: some View {
-        HStack(alignment: .center, spacing: 3) {
+        HStack(alignment: .center, spacing: 6) {
             Text("fullr")
                 .font(FullrFont.semibold(size, relativeTo: .largeTitle))
                 .tracking(-1.8)
@@ -62,8 +62,7 @@ struct FullrWordmark: View {
                 .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
-                .frame(width: size * 0.62, height: size * 0.62)
-                .offset(y: -size * 0.13)
+                .frame(width: 24, height: 24)
         }
         .foregroundStyle(FullrPalette.pine)
         .accessibilityElement(children: .ignore)
