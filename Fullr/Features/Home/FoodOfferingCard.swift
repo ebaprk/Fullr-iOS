@@ -18,10 +18,14 @@ struct FoodOfferingCard: View {
                         .font(FullrFont.regular(12, relativeTo: .caption))
                         .foregroundStyle(FullrPalette.moss)
                         .lineLimit(2)
-                    Text(offering.title)
-                        .font(FullrFont.semibold(18))
-                        .foregroundStyle(FullrPalette.pine)
-                        .fixedSize(horizontal: false, vertical: true)
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text(offering.title)
+                            .font(FullrFont.semibold(18))
+                            .foregroundStyle(FullrPalette.pine)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 0)
+                        PriceText(offering: offering)
+                    }
                     Text(offering.badgeText)
                         .font(FullrFont.medium(12, relativeTo: .caption))
                         .foregroundStyle(FullrPalette.moss)
@@ -77,8 +81,7 @@ struct FeaturedOfferingCard: View {
                     Text(offering.providerName)
                         .lineLimit(1)
                     Spacer(minLength: 0)
-                    Text(offering.badgeText)
-                        .fixedSize()
+                    PriceText(offering: offering)
                 }
                 .font(FullrFont.regular(12, relativeTo: .caption))
                 .foregroundStyle(FullrPalette.moss)
@@ -93,6 +96,10 @@ struct FeaturedOfferingCard: View {
                     .font(FullrFont.regular(12, relativeTo: .caption))
                     .foregroundStyle(FullrPalette.moss)
                     .fixedSize(horizontal: false, vertical: true)
+
+                Text(offering.badgeText)
+                    .font(FullrFont.medium(12, relativeTo: .caption))
+                    .foregroundStyle(FullrPalette.moss)
             }
             .padding(16)
         }
@@ -100,6 +107,19 @@ struct FeaturedOfferingCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay { RoundedRectangle(cornerRadius: 24).strokeBorder(FullrPalette.olive, lineWidth: 1) }
         .accessibilityElement(children: .combine)
+    }
+}
+
+private struct PriceText: View {
+    let offering: FoodOffering
+
+    var body: some View {
+        Text(offering.priceText)
+            .font(FullrFont.medium(13, relativeTo: .caption))
+            .foregroundStyle(FullrPalette.moss)
+            .lineLimit(1)
+            .fixedSize()
+            .accessibilityLabel("Price \(offering.priceText)")
     }
 }
 
