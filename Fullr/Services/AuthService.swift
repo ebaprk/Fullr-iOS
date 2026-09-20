@@ -3,7 +3,8 @@ import Foundation
 protocol AuthServicing {
     func restoreSession() async throws -> AppUser?
     func signIn(email: String, password: String) async throws -> AppUser
-    func signUp(name: String, email: String, password: String) async throws
+    func signUp(firstName: String, lastName: String, email: String, password: String) async throws -> AppUser?
+    func handleAuthCallback(_ url: URL) async throws -> AppUser?
     func signOut() async throws
 }
 
@@ -14,6 +15,7 @@ enum AuthenticationError: LocalizedError {
     case supabaseRequestFailed(String)
     case emailConfirmationRequired(String)
     case invalidEducationEmail
+    case missingRegistrationName
 
     var errorDescription: String? {
         switch self {
@@ -23,6 +25,7 @@ enum AuthenticationError: LocalizedError {
         case .supabaseRequestFailed(let message): message
         case .emailConfirmationRequired(let email): "Check \(email) to confirm your account before logging in."
         case .invalidEducationEmail: "Use a valid .edu email address to create an account."
+        case .missingRegistrationName: "Enter your first and last name to create an account."
         }
     }
 }
@@ -37,9 +40,15 @@ struct MockAuthService: AuthServicing {
         return AppUser(id: UUID(), name: "Student", email: email, schoolName: "Fullr University")
     }
 
-    func signUp(name: String, email: String, password: String) async throws {
+    func signUp(firstName: String, lastName: String, email: String, password: String) async throws -> AppUser? {
         try validate(email: email, password: password)
+        try validateName(firstName: firstName, lastName: lastName)
         try validateEducationEmail(email)
+        return nil
+    }
+
+    func handleAuthCallback(_ url: URL) async throws -> AppUser? {
+        nil
     }
 
     func signOut() async throws { }
@@ -53,6 +62,15 @@ struct MockAuthService: AuthServicing {
     private func validateEducationEmail(_ email: String) throws {
         guard email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased().hasSuffix(".edu") else {
             throw AuthenticationError.invalidEducationEmail
+        }
+    }
+
+    private func validateName(firstName: String, lastName: String) throws {
+        guard
+            !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            !lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        else {
+            throw AuthenticationError.missingRegistrationName
         }
     }
 }
@@ -103,13 +121,45 @@ final class SupabaseAuthService: AuthServicing {
         return AppUser(user: response.user)
     }
 
-    func signUp(name: String, email: String, password: String) async throws {
+    func signUp(firstName: String, lastName: String, email: String, password: String) async throws -> AppUser? {
         try validate(email: email, password: password)
         let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedFirstName = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedLastName = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
+        try validateName(firstName: trimmedFirstName, lastName: trimmedLastName)
         try validateEducationEmail(trimmedEmail)
-        let response = try await configuredClient.signUp(name: trimmedName, email: trimmedEmail, password: password)
-        try await configuredClient.createStudentProfile(id: response.user.id, name: trimmedName, email: trimmedEmail)
+        let response = try await configuredClient.signUp(
+            firstName: trimmedFirstName,
+            lastName: trimmedLastName,
+            email: trimmedEmail,
+            password: password
+        )
+
+        if let storedSession = response.session {
+            try SupabaseSessionStore.save(storedSession)
+            session = storedSession
+            return AppUser(user: response.user)
+        }
+
+        return nil
+    }
+
+    func handleAuthCallback(_ url: URL) async throws -> AppUser? {
+        guard let storedSession = try configuredClient.session(fromAuthCallback: url) else {
+            return nil
+        }
+
+        let user = try await configuredClient.fetchUser(accessToken: storedSession.accessToken)
+        let verifiedSession = SupabaseStoredSession(
+            accessToken: storedSession.accessToken,
+            refreshToken: storedSession.refreshToken,
+            expiresAt: storedSession.expiresAt,
+            user: user
+        )
+
+        try SupabaseSessionStore.save(verifiedSession)
+        session = verifiedSession
+        return AppUser(user: user)
     }
 
     func signOut() async throws {
@@ -136,11 +186,24 @@ final class SupabaseAuthService: AuthServicing {
             throw AuthenticationError.invalidEducationEmail
         }
     }
+
+    private func validateName(firstName: String, lastName: String) throws {
+        guard !firstName.isEmpty, !lastName.isEmpty else {
+            throw AuthenticationError.missingRegistrationName
+        }
+    }
 }
 
 private extension AppUser {
     init(user: SupabaseAuthUser) {
-        let displayName = user.userMetadata["name"]?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let metadataName = [
+            user.userMetadata["first_name"],
+            user.userMetadata["last_name"]
+        ]
+            .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+        let displayName = metadataName.isEmpty ? user.userMetadata["name"]?.trimmingCharacters(in: .whitespacesAndNewlines) : metadataName
         let email = user.email ?? ""
         let name = displayName?.isEmpty == false ? displayName ?? email : email
 

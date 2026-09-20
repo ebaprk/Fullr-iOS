@@ -28,6 +28,11 @@ struct RootView: View {
         .task {
             await appViewModel.restoreSession()
         }
+        .onOpenURL { url in
+            Task {
+                await appViewModel.handleAuthCallback(url)
+            }
+        }
     }
 }
 

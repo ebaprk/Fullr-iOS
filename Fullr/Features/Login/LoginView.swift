@@ -41,9 +41,14 @@ struct LoginView: View {
                             .tracking(-0.5)
 
                         if viewModel.isCreatingAccount && !viewModel.didSendConfirmationLink {
-                            field(title: "Your name", systemImage: "person") {
-                                TextField("Name", text: $viewModel.name, prompt: Text("Alex Green").foregroundStyle(FullrPalette.moss))
-                                    .textContentType(.name)
+                            field(title: "First name", systemImage: "person") {
+                                TextField("First name", text: $viewModel.firstName, prompt: Text("Alex").foregroundStyle(FullrPalette.moss))
+                                    .textContentType(.givenName)
+                                    .textInputAutocapitalization(.words)
+                            }
+                            field(title: "Last name", systemImage: "person") {
+                                TextField("Last name", text: $viewModel.lastName, prompt: Text("Green").foregroundStyle(FullrPalette.moss))
+                                    .textContentType(.familyName)
                                     .textInputAutocapitalization(.words)
                             }
                         }
@@ -146,7 +151,12 @@ struct LoginView: View {
     private func authenticate() {
         Task {
             if viewModel.isCreatingAccount {
-                let didSendLink = await appViewModel.signUp(name: viewModel.name, email: viewModel.email, password: viewModel.password)
+                let didSendLink = await appViewModel.signUp(
+                    firstName: viewModel.firstName,
+                    lastName: viewModel.lastName,
+                    email: viewModel.email,
+                    password: viewModel.password
+                )
                 if didSendLink {
                     withAnimation(reduceMotion ? nil : .snappy) { viewModel.didSendConfirmationLink = true }
                 }

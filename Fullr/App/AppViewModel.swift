@@ -35,19 +35,37 @@ final class AppViewModel {
     }
 
     @discardableResult
-    func signUp(name: String, email: String, password: String) async -> Bool {
+    func signUp(firstName: String, lastName: String, email: String, password: String) async -> Bool {
         guard !isAuthenticating else { return false }
         isAuthenticating = true
         isRestoringSession = false
         authErrorMessage = nil
         do {
-            try await authService.signUp(name: name, email: email, password: password)
+            if let user = try await authService.signUp(firstName: firstName, lastName: lastName, email: email, password: password) {
+                currentUser = user
+                isAuthenticating = false
+                return false
+            }
+
             isAuthenticating = false
             return true
         } catch {
             authErrorMessage = error.localizedDescription
             isAuthenticating = false
             return false
+        }
+    }
+
+    func handleAuthCallback(_ url: URL) async {
+        do {
+            if let user = try await authService.handleAuthCallback(url) {
+                currentUser = user
+                authErrorMessage = nil
+                isRestoringSession = false
+            }
+        } catch {
+            authErrorMessage = error.localizedDescription
+            isRestoringSession = false
         }
     }
 

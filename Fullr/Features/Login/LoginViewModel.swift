@@ -3,7 +3,8 @@ import Observation
 
 @Observable
 final class LoginViewModel {
-    var name = ""
+    var firstName = ""
+    var lastName = ""
     var email = ""
     var password = ""
     var isCreatingAccount = false
