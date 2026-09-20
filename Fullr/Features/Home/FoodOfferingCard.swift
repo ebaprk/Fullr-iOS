@@ -4,9 +4,15 @@ import Kingfisher
 struct FoodOfferingCard: View {
     let offering: FoodOffering
     var isCompact = false
+    var showsClaimedStatus = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            if showsClaimedStatus {
+                Label("Claimed by you", systemImage: "checkmark.circle.fill")
+                    .font(FullrFont.medium(13))
+                    .foregroundStyle(FullrPalette.moss)
+            }
             HStack(alignment: .top, spacing: 14) {
                 OfferingImage(offering: offering)
                     .frame(width: isCompact ? 64 : 82, height: isCompact ? 68 : 88)

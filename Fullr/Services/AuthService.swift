@@ -6,6 +6,13 @@ protocol AuthServicing {
     func signUp(firstName: String, lastName: String, email: String, password: String) async throws -> AppUser?
     func handleAuthCallback(_ url: URL) async throws -> AppUser?
     func signOut() async throws
+    func authenticatedSession() async throws -> SupabaseStoredSession
+}
+
+extension AuthServicing {
+    func authenticatedSession() async throws -> SupabaseStoredSession {
+        throw AuthenticationError.signInRequired
+    }
 }
 
 enum AuthenticationError: LocalizedError {
@@ -16,6 +23,7 @@ enum AuthenticationError: LocalizedError {
     case emailConfirmationRequired(String)
     case invalidEducationEmail
     case missingRegistrationName
+    case signInRequired
 
     var errorDescription: String? {
         switch self {
@@ -26,6 +34,7 @@ enum AuthenticationError: LocalizedError {
         case .emailConfirmationRequired(let email): "Check \(email) to confirm your account before logging in."
         case .invalidEducationEmail: "Use a valid .edu email address to create an account."
         case .missingRegistrationName: "Enter your first and last name to create an account."
+        case .signInRequired: "Please sign in again to save your claim status."
         }
     }
 }
@@ -79,6 +88,7 @@ struct MockAuthService: AuthServicing {
 final class SupabaseAuthService: AuthServicing {
     private let client: FullrSupabaseClient?
     private var session: SupabaseStoredSession?
+    private var refreshTask: Task<SupabaseStoredSession, Error>?
 
     init(client: FullrSupabaseClient? = SupabaseClientProvider.makeClient()) {
         self.client = client
@@ -166,6 +176,28 @@ final class SupabaseAuthService: AuthServicing {
         try await configuredClient.signOut(accessToken: session?.accessToken)
         SupabaseSessionStore.clear()
         session = nil
+    }
+
+    func authenticatedSession() async throws -> SupabaseStoredSession {
+        guard let current = session else { throw AuthenticationError.signInRequired }
+        guard current.isExpired else { return current }
+        if let refreshTask { return try await refreshTask.value }
+
+        let client = try configuredClient
+        let task = Task {
+            let response = try await client.refreshSession(refreshToken: current.refreshToken)
+            guard let refreshed = response.session else { throw AuthenticationError.signInRequired }
+            // Do not restore a session after the user signs out or changes accounts.
+            guard self.session?.refreshToken == current.refreshToken else {
+                throw AuthenticationError.signInRequired
+            }
+            try SupabaseSessionStore.save(refreshed)
+            self.session = refreshed
+            return refreshed
+        }
+        refreshTask = task
+        defer { refreshTask = nil }
+        return try await task.value
     }
 
     private var configuredClient: FullrSupabaseClient {

@@ -34,6 +34,10 @@
 		F011A0020000000000000003 /* Outfit.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 17F4976E305F43E100F5C27E /* Outfit.ttf */; };
 		F011A0020000000000000004 /* OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = 17F4976D305F43E100F5C27E /* OFL.txt */; };
 		F011A0030000000000000001 /* AddressGeocoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F011A0030000000000000002 /* AddressGeocoder.swift */; };
+		F011A0040000000000000001 /* RestaurantStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = F011A0040000000000000002 /* RestaurantStats.swift */; };
+		F011A0050000000000000001 /* RestaurantStatsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F011A0050000000000000002 /* RestaurantStatsService.swift */; };
+		F011A0060000000000000001 /* ClaimStatsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F011A0060000000000000002 /* ClaimStatsViewModel.swift */; };
+		F011A0070000000000000001 /* RestaurantStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F011A0070000000000000002 /* RestaurantStatsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -64,6 +68,10 @@
 		F011A0010000000000000002 /* FullrStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullrStyle.swift; sourceTree = "<group>"; };
 		F011A0020000000000000002 /* OfferingDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferingDetailView.swift; sourceTree = "<group>"; };
 		F011A0030000000000000002 /* AddressGeocoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressGeocoder.swift; sourceTree = "<group>"; };
+		F011A0040000000000000002 /* RestaurantStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestaurantStats.swift; sourceTree = "<group>"; };
+		F011A0050000000000000002 /* RestaurantStatsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestaurantStatsService.swift; sourceTree = "<group>"; };
+		F011A0060000000000000002 /* ClaimStatsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaimStatsViewModel.swift; sourceTree = "<group>"; };
+		F011A0070000000000000002 /* RestaurantStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestaurantStatsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -126,6 +134,7 @@
 				17F49746305E5EA700F5C27E /* AppUser.swift */,
 				17F49748305E5EA700F5C27E /* OfferingFilter.swift */,
 				17F4974A305E5EC800F5C27E /* FoodOffering.swift */,
+				F011A0040000000000000002 /* RestaurantStats.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -135,6 +144,7 @@
 			children = (
 				17F4974C305E5EC900F5C27E /* AuthService.swift */,
 				17F4974E305E5EC900F5C27E /* FoodOfferingService.swift */,
+				F011A0050000000000000002 /* RestaurantStatsService.swift */,
 				F011A0030000000000000002 /* AddressGeocoder.swift */,
 				17F49762305EF7C900F5C27E /* SupabaseClientProvider.swift */,
 			);
@@ -148,6 +158,7 @@
 				17F4973F305E5E8F00F5C27E /* Home */,
 				17F49740305E5E9000F5C27E /* Map */,
 				17F49741305E5E9000F5C27E /* Settings */,
+				F011A0080000000000000001 /* Stats */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -200,6 +211,15 @@
 			path = Resources/Fonts;
 			sourceTree = "<group>";
 		};
+		F011A0080000000000000001 /* Stats */ = {
+            isa = PBXGroup;
+            children = (
+                F011A0060000000000000002 /* ClaimStatsViewModel.swift */,
+                F011A0070000000000000002 /* RestaurantStatsView.swift */,
+            );
+            path = Stats;
+            sourceTree = "<group>";
+        };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -278,6 +298,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F011A0070000000000000001 /* RestaurantStatsView.swift in Sources */,
+				F011A0060000000000000001 /* ClaimStatsViewModel.swift in Sources */,
+				F011A0050000000000000001 /* RestaurantStatsService.swift in Sources */,
+				F011A0040000000000000001 /* RestaurantStats.swift in Sources */,
 				17F49749305E5EA700F5C27E /* OfferingFilter.swift in Sources */,
 				F011A0010000000000000001 /* FullrStyle.swift in Sources */,
 				17F49757305E5EFC00F5C27E /* FoodOfferingCard.swift in Sources */,

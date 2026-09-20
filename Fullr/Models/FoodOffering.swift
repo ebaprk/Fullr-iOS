@@ -19,6 +19,7 @@ struct FoodOffering: Identifiable, Hashable {
     var providerID: UUID? = nil
     var providerDescription = ""
     var providerAddress = ""
+    var hasPickupCoordinate = true
 
     static func == (lhs: FoodOffering, rhs: FoodOffering) -> Bool { lhs.id == rhs.id }
 

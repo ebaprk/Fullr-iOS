@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @State var viewModel: SettingsViewModel
+    let offeringService: FoodOfferingServicing
     let onSignOut: () -> Void
 
     var body: some View {
@@ -57,9 +58,9 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     sectionTitle("Your food finds")
                     NavigationLink {
-                        collectionPlaceholder(title: "Saved offerings", message: "Your saved food finds will feel right at home here.", systemImage: "bookmark")
+                        ClaimedOffersView(offeringService: offeringService)
                     } label: {
-                        navigationRow("Saved offerings", symbol: "bookmark")
+                        navigationRow("Claimed offers", symbol: "checkmark.circle")
                     }
                     separator
                     NavigationLink {
@@ -170,8 +171,81 @@ struct SettingsView: View {
     }
 }
 
+private struct ClaimedOffersView: View {
+    let offeringService: FoodOfferingServicing
+    @State private var viewModel: ClaimedOffersViewModel
+    @State private var selectedOffering: FoodOffering?
+    @Environment(\.scenePhase) private var scenePhase
+
+    init(offeringService: FoodOfferingServicing) {
+        self.offeringService = offeringService
+        _viewModel = State(initialValue: ClaimedOffersViewModel(service: offeringService))
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Text("The offers you’ve marked as claimed, all in one place.")
+                    .font(FullrFont.regular(15))
+                    .foregroundStyle(FullrPalette.moss)
+
+                if viewModel.isLoading {
+                    ProgressView("Loading claimed offers…")
+                        .tint(FullrPalette.moss)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 32)
+                } else if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                        .foregroundStyle(FullrPalette.moss)
+                    Button("Try again") { Task { await viewModel.load() } }
+                        .buttonStyle(FullrPrimaryButtonStyle())
+                } else if viewModel.offerings.isEmpty {
+                    FullrEmptyState(
+                        title: "No claimed offers yet",
+                        message: "Open an offer and tap “Confirm I claimed this” to see it here.",
+                        systemImage: "checkmark.circle"
+                    )
+                } else {
+                    LazyVStack(spacing: 14) {
+                        ForEach(viewModel.offerings) { offering in
+                            Button { selectedOffering = offering } label: {
+                                FoodOfferingCard(offering: offering, showsClaimedStatus: true)
+                            }
+                            .buttonStyle(FullrPressStyle())
+                            .accessibilityHint("Opens offer details and claim status")
+                        }
+                    }
+                }
+            }
+            .frame(maxWidth: 680, alignment: .leading)
+            .padding(24)
+            .frame(maxWidth: .infinity)
+        }
+        .background(FullrPalette.cream)
+        .foregroundStyle(FullrPalette.pine)
+        .font(FullrFont.regular(16))
+        .tint(FullrPalette.moss)
+        .navigationTitle("Claimed offers")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.visible, for: .navigationBar)
+        .toolbarBackground(FullrPalette.cream, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .navigationDestination(item: $selectedOffering) { offering in
+            OfferingDetailView(offering: offering, offeringService: offeringService)
+        }
+        .task { await viewModel.load() }
+        .refreshable { await viewModel.load() }
+        .onReceive(NotificationCenter.default.publisher(for: .offerClaimStatusDidChange)) { _ in
+            Task { await viewModel.load() }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { Task { await viewModel.load() } }
+        }
+    }
+}
+
 #Preview {
     NavigationStack {
-        SettingsView(viewModel: SettingsViewModel(user: .preview), onSignOut: { })
+        SettingsView(viewModel: SettingsViewModel(user: .preview), offeringService: MockFoodOfferingService(), onSignOut: { })
     }
 }
