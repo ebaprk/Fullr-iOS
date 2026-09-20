@@ -88,7 +88,7 @@ struct FullrSupabaseClient {
     func fetchOffers() async throws -> [SupabaseOffer] {
         var components = restURLComponents(path: "Offers")
         components.queryItems = [
-            URLQueryItem(name: "select", value: "*")
+            URLQueryItem(name: "select", value: Self.offerColumns)
         ]
 
         return try await get(
@@ -136,6 +136,59 @@ struct FullrSupabaseClient {
             accessToken: anonKey,
             expecting: [SupabaseStore].self
         )
+    }
+
+    func fetchClaimStatus(for offerID: UUID, session: SupabaseStoredSession) async throws -> Bool {
+        try await post(
+            path: restURLComponents(path: "rpc/get_offer_claim_status"),
+            body: SupabaseOfferClaimRequest(offerID: offerID, claimed: nil),
+            accessToken: session.accessToken,
+            expecting: Bool.self
+        )
+    }
+
+    func fetchClaimStats<Row: Decodable & Identifiable>(request: ClaimStatsRequest, session: SupabaseStoredSession) async throws -> ClaimStatsPage<Row> {
+        try await post(
+            path: restURLComponents(path: "rpc/get_provider_claim_stats"),
+            body: request,
+            accessToken: session.accessToken,
+            expecting: ClaimStatsPage<Row>.self
+        )
+    }
+
+    func fetchClaimedOffers(session: SupabaseStoredSession) async throws -> [SupabaseOffer] {
+        var offers: [SupabaseOffer] = []
+        let pageSize = 100
+        while true {
+            try Task.checkCancellation()
+            var components = restURLComponents(path: "Offers")
+            components.queryItems = [
+                URLQueryItem(name: "select", value: Self.offerColumns),
+                URLQueryItem(name: "claimed_user_ids", value: "cs.{\(session.user.id.uuidString)}"),
+                URLQueryItem(name: "order", value: "posted_time.desc,offer_id.asc"),
+                URLQueryItem(name: "limit", value: "\(pageSize)"),
+                URLQueryItem(name: "offset", value: "\(offers.count)")
+            ]
+            let page = try await get(path: components, accessToken: session.accessToken, expecting: [SupabaseOffer].self)
+            offers.append(contentsOf: page)
+            if page.count < pageSize { return offers }
+        }
+    }
+
+    // Claim UUID arrays are used only as a server filter, never downloaded for cards.
+    private static let offerColumns = "offer_id,offer_name,posted_time,offer_end_time,offer_completed,offer_description,store_id,views"
+
+    func setClaimStatus(_ claimed: Bool, for offerID: UUID, session: SupabaseStoredSession) async throws -> Bool {
+        let saved = try await post(
+            path: restURLComponents(path: "rpc/set_offer_claim_status"),
+            body: SupabaseOfferClaimRequest(offerID: offerID, claimed: claimed),
+            accessToken: session.accessToken,
+            expecting: Bool.self
+        )
+        guard saved == claimed else {
+            throw AuthenticationError.supabaseRequestFailed("Your claim status was not saved. Please try again.")
+        }
+        return saved
     }
 
     func refreshSession(refreshToken: String) async throws -> SupabaseAuthResponse {
@@ -399,6 +452,7 @@ struct SupabaseOffer: Decodable {
     let description: String
     let storeID: UUID
     let views: Int
+    let offerName: String
 
     private enum CodingKeys: String, CodingKey {
         case offerID = "offer_id"
@@ -408,6 +462,7 @@ struct SupabaseOffer: Decodable {
         case description = "offer_description"
         case storeID = "store_id"
         case views
+        case offerName = "offer_name"
     }
 
     init(from decoder: Decoder) throws {
@@ -420,6 +475,7 @@ struct SupabaseOffer: Decodable {
         description = (try? container.decodeIfPresent(String.self, forKey: .description)) ?? ""
         storeID = try container.decode(UUID.self, forKey: .storeID)
         views = (try? container.decodeIfPresent(Int.self, forKey: .views)) ?? 0
+        offerName = (try? container.decodeIfPresent(String.self, forKey: .offerName)) ?? ""
     }
 
     var isAvailable: Bool {
@@ -450,6 +506,8 @@ struct SupabaseOffer: Decodable {
     }
 
     private var title: String {
+        let name = offerName.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !name.isEmpty { return name }
         let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedDescription.isEmpty else { return "Food available" }
         let firstSentence = trimmedDescription.split(separator: ".", maxSplits: 1).first.map(String.init) ?? trimmedDescription
@@ -467,6 +525,16 @@ struct SupabaseOffer: Decodable {
         let userLocation = CLLocation(latitude: userCoordinate.latitude, longitude: userCoordinate.longitude)
         let offerLocation = CLLocation(latitude: offerCoordinate.latitude, longitude: offerCoordinate.longitude)
         return userLocation.distance(from: offerLocation) / 1_609.344
+    }
+}
+
+private struct SupabaseOfferClaimRequest: Encodable {
+    let offerID: UUID
+    let claimed: Bool?
+
+    enum CodingKeys: String, CodingKey {
+        case offerID = "p_offer_id"
+        case claimed = "p_claimed"
     }
 }
 

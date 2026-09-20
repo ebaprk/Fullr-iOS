@@ -26,6 +26,9 @@ struct OfferingDetailView: View {
                     DietaryTagRow(tags: offering.dietaryTags)
                 }
 
+                OfferClaimSection(offerID: offering.id, service: offeringService)
+                    .id(offering.id)
+
                 NavigationLink {
                     ProviderDetailView(offering: offering, offeringService: offeringService)
                 } label: {
@@ -97,6 +100,76 @@ struct OfferingDetailView: View {
         guard !didIncrementView else { return }
         didIncrementView = true
         try? await offeringService.incrementViews(for: offering.id)
+    }
+}
+
+private struct OfferClaimSection: View {
+    @State private var viewModel: OfferClaimViewModel
+
+    init(offerID: UUID, service: FoodOfferingServicing) {
+        _viewModel = State(initialValue: OfferClaimViewModel(offerID: offerID, service: service))
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if viewModel.isLoading {
+                ProgressView("Checking your claim…")
+                    .tint(FullrPalette.moss)
+            } else if viewModel.hasLoaded {
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: viewModel.claimed == true ? "checkmark.circle.fill" : "circle.dashed")
+                        .font(FullrFont.medium(28))
+                        .foregroundStyle(FullrPalette.moss)
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(viewModel.claimed == true ? "Claimed by you" : "Not claimed yet")
+                            .font(FullrFont.semibold(21, relativeTo: .title3))
+                            .accessibilityAddTraits(.isHeader)
+                        Text(viewModel.claimed == true
+                             ? "You can find this offer in You → Claimed offers."
+                             : "Already claimed this offer? Confirm below to add it to your claimed offers.")
+                            .font(FullrFont.regular(14))
+                            .foregroundStyle(FullrPalette.moss)
+                    }
+                }
+
+                if viewModel.isSaving {
+                    ProgressView(viewModel.claimed == true ? "Removing your claim…" : "Confirming your claim…")
+                        .tint(FullrPalette.moss)
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                } else if viewModel.claimed == true {
+                    Button { Task { await viewModel.save(false) } } label: {
+                        Label("Undo claim", systemImage: "arrow.uturn.backward")
+                            .font(FullrFont.medium(15))
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                            .overlay { Capsule().strokeBorder(FullrPalette.moss, lineWidth: 1) }
+                    }
+                    .foregroundStyle(FullrPalette.moss)
+                    .buttonStyle(FullrPressStyle())
+                    .accessibilityHint("Removes this offer from your claimed offers")
+                } else {
+                    Button { Task { await viewModel.save(true) } } label: {
+                        Label("Confirm I claimed this", systemImage: "checkmark.circle")
+                    }
+                    .buttonStyle(FullrPrimaryButtonStyle())
+                    .accessibilityHint("Saves your claim and adds this offer to your claimed offers")
+                }
+            }
+
+            if let errorMessage = viewModel.errorMessage {
+                Label(errorMessage, systemImage: "exclamationmark.circle")
+                    .font(FullrFont.regular(14))
+                    .foregroundStyle(FullrPalette.moss)
+                if !viewModel.hasLoaded {
+                    Button("Try again") { Task { await viewModel.load() } }
+                        .buttonStyle(FullrPrimaryButtonStyle())
+                }
+            }
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .overlay { RoundedRectangle(cornerRadius: 24).strokeBorder(FullrPalette.moss, lineWidth: 1) }
+        .task { await viewModel.load() }
     }
 }
 
@@ -210,29 +283,35 @@ private struct PickupLocationSection: View {
                     .foregroundStyle(FullrPalette.moss)
                     .textSelection(.enabled)
             }
-            Map(initialPosition: .region(MKCoordinateRegion(
-                center: offering.coordinate,
-                span: MKCoordinateSpan(latitudeDelta: 0.008, longitudeDelta: 0.008)
-            )), interactionModes: []) {
-                Marker(offering.providerName, systemImage: offering.providerType.systemImageName, coordinate: offering.coordinate)
-                    .tint(FullrPalette.moss)
-            }
-            .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll))
-            .frame(height: 180)
-            .clipShape(RoundedRectangle(cornerRadius: 24))
+            if offering.hasPickupCoordinate {
+                Map(initialPosition: .region(MKCoordinateRegion(
+                    center: offering.coordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.008, longitudeDelta: 0.008)
+                )), interactionModes: []) {
+                    Marker(offering.providerName, systemImage: offering.providerType.systemImageName, coordinate: offering.coordinate)
+                        .tint(FullrPalette.moss)
+                }
+                .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll))
+                .frame(height: 180)
+                .clipShape(RoundedRectangle(cornerRadius: 24))
 
-            Button {
-                let destination = MKMapItem(location: CLLocation(latitude: offering.coordinate.latitude, longitude: offering.coordinate.longitude), address: nil)
-                destination.name = offering.providerName
-                showsMapsError = !destination.openInMaps(launchOptions: nil)
-            } label: {
-                Label("Open in Maps", systemImage: "arrow.up.right")
-            }
-            .buttonStyle(FullrPrimaryButtonStyle())
-            .alert("Could not open Maps", isPresented: $showsMapsError) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("Please try again or use the pickup location shown above.")
+                Button {
+                    let destination = MKMapItem(location: CLLocation(latitude: offering.coordinate.latitude, longitude: offering.coordinate.longitude), address: nil)
+                    destination.name = offering.providerName
+                    showsMapsError = !destination.openInMaps(launchOptions: nil)
+                } label: {
+                    Label("Open in Maps", systemImage: "arrow.up.right")
+                }
+                .buttonStyle(FullrPrimaryButtonStyle())
+                .alert("Could not open Maps", isPresented: $showsMapsError) {
+                    Button("OK", role: .cancel) { }
+                } message: {
+                    Text("Please try again or use the pickup location shown above.")
+                }
+            } else {
+                Text("Map location unavailable. Refer to the pickup address above.")
+                    .font(FullrFont.regular(14))
+                    .foregroundStyle(FullrPalette.moss)
             }
         }
     }

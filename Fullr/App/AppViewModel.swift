@@ -5,6 +5,7 @@ import Observation
 final class AppViewModel {
     private let authService: AuthServicing
     let offeringService: FoodOfferingServicing
+    let statsService: RestaurantStatsServicing
 
     private(set) var currentUser: AppUser?
     var authErrorMessage: String?
@@ -13,9 +14,15 @@ final class AppViewModel {
 
     var isAuthenticated: Bool { currentUser != nil }
 
-    init(authService: AuthServicing? = nil, offeringService: FoodOfferingServicing = SupabaseFoodOfferingService()) {
-        self.authService = authService ?? SupabaseAuthService()
-        self.offeringService = offeringService
+    init(authService: AuthServicing? = nil, offeringService: FoodOfferingServicing? = nil, statsService: RestaurantStatsServicing? = nil) {
+        let authService = authService ?? SupabaseAuthService()
+        self.authService = authService
+        self.offeringService = offeringService ?? SupabaseFoodOfferingService(
+            sessionProvider: { try await authService.authenticatedSession() }
+        )
+        self.statsService = statsService ?? SupabaseRestaurantStatsService(
+            sessionProvider: { try await authService.authenticatedSession() }
+        )
     }
 
     func restoreSession() async {

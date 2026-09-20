@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum AppSection: String, CaseIterable, Hashable, Identifiable {
-    case home, map, settings
+    case home, map, stats, settings
 
     var id: String { rawValue }
 
@@ -9,6 +9,7 @@ enum AppSection: String, CaseIterable, Hashable, Identifiable {
         switch self {
         case .home: "Discover"
         case .map: "Map"
+        case .stats: "Stats"
         case .settings: "You"
         }
     }
@@ -17,6 +18,7 @@ enum AppSection: String, CaseIterable, Hashable, Identifiable {
         switch self {
         case .home: "leaf"
         case .map: "map"
+        case .stats: "chart.bar"
         case .settings: "person.crop.circle"
         }
     }
@@ -25,6 +27,7 @@ enum AppSection: String, CaseIterable, Hashable, Identifiable {
         switch self {
         case .home: "leaf.fill"
         case .map: "map.fill"
+        case .stats: "chart.bar.fill"
         case .settings: "person.crop.circle.fill"
         }
     }
@@ -33,7 +36,6 @@ enum AppSection: String, CaseIterable, Hashable, Identifiable {
 struct FullrTabView: View {
     let appViewModel: AppViewModel
     @State private var selectedSection: AppSection = .home
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var homeViewModel: HomeViewModel
     @State private var mapViewModel: MapViewModel
     @State private var settingsViewModel: SettingsViewModel
@@ -66,7 +68,13 @@ struct FullrTabView: View {
                 .toolbar(.hidden, for: .tabBar)
 
                 NavigationStack {
-                    SettingsView(viewModel: settingsViewModel) {
+                    RestaurantStatsView(service: appViewModel.statsService)
+                }
+                .tag(AppSection.stats)
+                .toolbar(.hidden, for: .tabBar)
+
+                NavigationStack {
+                    SettingsView(viewModel: settingsViewModel, offeringService: appViewModel.offeringService) {
                         Task { await appViewModel.signOut() }
                     }
                 }
@@ -103,10 +111,7 @@ struct FullrTabView: View {
         HStack(spacing: 8) {
             ForEach(AppSection.allCases) { section in
                 Button { selectedSection = section } label: {
-                    let layout = dynamicTypeSize.isAccessibilitySize
-                        ? AnyLayout(VStackLayout(spacing: 6))
-                        : AnyLayout(HStackLayout(spacing: 7))
-                    layout {
+                    VStack(spacing: 6) {
                         tabIcon(for: section)
                             .font(FullrFont.medium(18))
                         Text(section.title)
@@ -136,5 +141,5 @@ struct FullrTabView: View {
 }
 
 #Preview {
-    FullrTabView(appViewModel: AppViewModel(authService: MockAuthService(), offeringService: MockFoodOfferingService()))
+    FullrTabView(appViewModel: AppViewModel(authService: MockAuthService(), offeringService: MockFoodOfferingService(), statsService: MockRestaurantStatsService()))
 }
