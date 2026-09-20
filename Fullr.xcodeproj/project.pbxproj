@@ -33,6 +33,7 @@
 		F011A0020000000000000001 /* OfferingDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F011A0020000000000000002 /* OfferingDetailView.swift */; };
 		F011A0020000000000000003 /* Outfit.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 17F4976E305F43E100F5C27E /* Outfit.ttf */; };
 		F011A0020000000000000004 /* OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = 17F4976D305F43E100F5C27E /* OFL.txt */; };
+		F011A0030000000000000001 /* AddressGeocoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F011A0030000000000000002 /* AddressGeocoder.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -62,6 +63,7 @@
 		17F4976E305F43E100F5C27E /* Outfit.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Outfit.ttf; sourceTree = "<group>"; };
 		F011A0010000000000000002 /* FullrStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullrStyle.swift; sourceTree = "<group>"; };
 		F011A0020000000000000002 /* OfferingDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferingDetailView.swift; sourceTree = "<group>"; };
+		F011A0030000000000000002 /* AddressGeocoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressGeocoder.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -133,6 +135,7 @@
 			children = (
 				17F4974C305E5EC900F5C27E /* AuthService.swift */,
 				17F4974E305E5EC900F5C27E /* FoodOfferingService.swift */,
+				F011A0030000000000000002 /* AddressGeocoder.swift */,
 				17F49762305EF7C900F5C27E /* SupabaseClientProvider.swift */,
 			);
 			path = Services;
@@ -290,6 +293,7 @@
 				17F49753305E5EDC00F5C27E /* LoginView.swift in Sources */,
 				17F4975D305E5F1400F5C27E /* MapScreenView.swift in Sources */,
 				17F4974F305E5EC900F5C27E /* FoodOfferingService.swift in Sources */,
+				F011A0030000000000000001 /* AddressGeocoder.swift in Sources */,
 				17F49755305E5EFB00F5C27E /* HomeViewModel.swift in Sources */,
 				17F49743305E5EA500F5C27E /* AppViewModel.swift in Sources */,
 				17F4974B305E5EC800F5C27E /* FoodOffering.swift in Sources */,

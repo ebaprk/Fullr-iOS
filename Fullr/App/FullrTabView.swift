@@ -36,11 +36,18 @@ struct FullrTabView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var homeViewModel: HomeViewModel
     @State private var mapViewModel: MapViewModel
+    @State private var settingsViewModel: SettingsViewModel
 
     init(appViewModel: AppViewModel) {
         self.appViewModel = appViewModel
-        _homeViewModel = State(initialValue: HomeViewModel(offeringService: appViewModel.offeringService))
-        _mapViewModel = State(initialValue: MapViewModel(offeringService: appViewModel.offeringService))
+        let settingsViewModel = SettingsViewModel(user: appViewModel.currentUser)
+        let homeViewModel = HomeViewModel(offeringService: appViewModel.offeringService)
+        let mapViewModel = MapViewModel(offeringService: appViewModel.offeringService)
+        homeViewModel.filter.showOnlyStudentVerifiedProviders = settingsViewModel.showOnlyStudentVerifiedProviders
+        mapViewModel.showOnlyStudentVerifiedProviders = settingsViewModel.showOnlyStudentVerifiedProviders
+        _settingsViewModel = State(initialValue: settingsViewModel)
+        _homeViewModel = State(initialValue: homeViewModel)
+        _mapViewModel = State(initialValue: mapViewModel)
     }
 
     var body: some View {
@@ -59,7 +66,7 @@ struct FullrTabView: View {
                 .toolbar(.hidden, for: .tabBar)
 
                 NavigationStack {
-                    SettingsView(viewModel: SettingsViewModel(user: appViewModel.currentUser)) {
+                    SettingsView(viewModel: settingsViewModel) {
                         Task { await appViewModel.signOut() }
                     }
                 }
@@ -71,6 +78,25 @@ struct FullrTabView: View {
         .font(FullrFont.regular(16))
         .tint(FullrPalette.moss)
         .background(FullrPalette.cream)
+        .onChange(of: settingsViewModel.showOnlyStudentVerifiedProviders) { _, showOnlyVerifiedProviders in
+            Task {
+                await homeViewModel.updateStudentVerifiedProviders(showOnlyVerifiedProviders)
+                await mapViewModel.updateStudentVerifiedProviders(showOnlyVerifiedProviders)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func tabIcon(for section: AppSection) -> some View {
+        if section == .home {
+            Image("logo")
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 18, height: 18)
+        } else {
+            Image(systemName: selectedSection == section ? section.selectedSystemImage : section.systemImage)
+        }
     }
 
     private var navigationBar: some View {
@@ -81,7 +107,7 @@ struct FullrTabView: View {
                         ? AnyLayout(VStackLayout(spacing: 6))
                         : AnyLayout(HStackLayout(spacing: 7))
                     layout {
-                        Image(systemName: selectedSection == section ? section.selectedSystemImage : section.systemImage)
+                        tabIcon(for: section)
                             .font(FullrFont.medium(18))
                         Text(section.title)
                             .font(FullrFont.medium(13, relativeTo: .caption))

@@ -99,6 +99,12 @@ final class HomeViewModel: NSObject, CLLocationManagerDelegate {
         scheduleLoadOfferings()
     }
 
+    func updateStudentVerifiedProviders(_ showOnlyVerifiedProviders: Bool) async {
+        guard filter.showOnlyStudentVerifiedProviders != showOnlyVerifiedProviders else { return }
+        filter.showOnlyStudentVerifiedProviders = showOnlyVerifiedProviders
+        await loadOfferings()
+    }
+
     func toggleDietaryTag(_ tag: DietaryTag) async {
         if filter.selectedDietaryTags.contains(tag) {
             filter.selectedDietaryTags.remove(tag)

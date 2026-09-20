@@ -14,6 +14,7 @@ struct FoodOffering: Identifiable, Hashable {
     let coordinate: CLLocationCoordinate2D
     let postedAt: Date
     let imageURL: URL?
+    var isStudentVerifiedProvider = true
     var providerID: UUID? = nil
     var providerDescription = ""
     var providerAddress = ""

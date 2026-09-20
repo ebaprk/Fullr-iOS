@@ -42,7 +42,7 @@ struct SettingsView: View {
 
                 VStack(alignment: .leading, spacing: 8) {
                     sectionTitle("Make it yours")
-                    Toggle(isOn: $viewModel.notificationsEnabled) {
+                    Toggle(isOn: pickupRemindersBinding) {
                         preferenceLabel("Pickup reminders", subtitle: "A little nudge before it’s time.", symbol: "bell")
                     }
                     .padding(.vertical, 12)
@@ -97,10 +97,29 @@ struct SettingsView: View {
         .background(FullrPalette.cream)
         .foregroundStyle(FullrPalette.pine)
         .toolbar(.hidden, for: .navigationBar)
+        .alert("Pickup reminders are off", isPresented: pickupReminderAlertIsPresented) {
+            Button("OK") { viewModel.pickupReminderMessage = nil }
+        } message: {
+            Text(viewModel.pickupReminderMessage ?? "")
+        }
     }
 
     private var separator: some View {
         Rectangle().fill(FullrPalette.olive).frame(height: 0.5)
+    }
+
+    private var pickupRemindersBinding: Binding<Bool> {
+        Binding(
+            get: { viewModel.pickupRemindersEnabled },
+            set: { viewModel.setPickupRemindersEnabled($0) }
+        )
+    }
+
+    private var pickupReminderAlertIsPresented: Binding<Bool> {
+        Binding(
+            get: { viewModel.pickupReminderMessage != nil },
+            set: { if !$0 { viewModel.pickupReminderMessage = nil } }
+        )
     }
 
     private func sectionTitle(_ title: String) -> some View {

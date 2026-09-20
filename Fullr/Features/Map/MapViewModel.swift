@@ -14,7 +14,9 @@ final class MapViewModel: NSObject, CLLocationManagerDelegate {
     var isLoading = false
     var cameraPosition: MapCameraPosition
     var maximumDistanceInMiles = OfferingFilter.defaultMaximumDistanceInMiles
+    var showOnlyStudentVerifiedProviders = false
     private var userCoordinate: CLLocationCoordinate2D?
+    private var loadGeneration = 0
 
     private let defaultRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 40.7306, longitude: -73.9950),
@@ -36,17 +38,25 @@ final class MapViewModel: NSObject, CLLocationManagerDelegate {
     }
 
     func loadOfferings() async {
-        guard !isLoading else { return }
+        loadGeneration += 1
+        let generation = loadGeneration
         isLoading = true
-        defer { isLoading = false }
+        defer {
+            if generation == loadGeneration { isLoading = false }
+        }
         do {
-            offerings = try await offeringService.fetchOfferings(filter: OfferingFilter(maximumDistanceInMiles: maximumDistanceInMiles, userCoordinate: userCoordinate))
+            let fetchedOfferings = try await offeringService.fetchOfferings(filter: OfferingFilter(showOnlyStudentVerifiedProviders: showOnlyStudentVerifiedProviders, maximumDistanceInMiles: maximumDistanceInMiles, userCoordinate: userCoordinate))
+            // Location may arrive while addresses are being geocoded. Only the
+            // latest fetch can publish distances/filter results for the map.
+            guard generation == loadGeneration else { return }
+            offerings = fetchedOfferings
             if let selectedOffering, offerings.contains(selectedOffering) {
                 self.selectedOffering = selectedOffering
             } else {
                 selectedOffering = offerings.first
             }
         } catch {
+            guard generation == loadGeneration else { return }
             offerings = []
         }
     }
@@ -103,6 +113,12 @@ final class MapViewModel: NSObject, CLLocationManagerDelegate {
 
     func updateDistance(_ distance: Double) async {
         maximumDistanceInMiles = distance
+        await loadOfferings()
+    }
+
+    func updateStudentVerifiedProviders(_ showOnlyVerifiedProviders: Bool) async {
+        guard showOnlyStudentVerifiedProviders != showOnlyVerifiedProviders else { return }
+        showOnlyStudentVerifiedProviders = showOnlyVerifiedProviders
         await loadOfferings()
     }
 }

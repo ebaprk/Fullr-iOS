@@ -8,6 +8,7 @@ struct OfferingFilter: Equatable {
     var searchText = ""
     var providerType: ProviderType?
     var selectedDietaryTags: Set<DietaryTag> = []
+    var showOnlyStudentVerifiedProviders = false
     var maximumDistanceInMiles = defaultMaximumDistanceInMiles
     var userCoordinate: CLLocationCoordinate2D?
 
@@ -15,6 +16,7 @@ struct OfferingFilter: Equatable {
         lhs.searchText == rhs.searchText
             && lhs.providerType == rhs.providerType
             && lhs.selectedDietaryTags == rhs.selectedDietaryTags
+            && lhs.showOnlyStudentVerifiedProviders == rhs.showOnlyStudentVerifiedProviders
             && lhs.maximumDistanceInMiles == rhs.maximumDistanceInMiles
             && lhs.userCoordinate?.latitude == rhs.userCoordinate?.latitude
             && lhs.userCoordinate?.longitude == rhs.userCoordinate?.longitude
