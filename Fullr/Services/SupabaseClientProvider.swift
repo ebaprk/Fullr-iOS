@@ -399,6 +399,7 @@ struct SupabaseOffer: Decodable {
     let description: String
     let storeID: UUID
     let views: Int
+    let offerPrice: Double
 
     private enum CodingKeys: String, CodingKey {
         case offerID = "offer_id"
@@ -408,6 +409,7 @@ struct SupabaseOffer: Decodable {
         case description = "offer_description"
         case storeID = "store_id"
         case views
+        case offerPrice = "offer_price"
     }
 
     init(from decoder: Decoder) throws {
@@ -420,6 +422,7 @@ struct SupabaseOffer: Decodable {
         description = (try? container.decodeIfPresent(String.self, forKey: .description)) ?? ""
         storeID = try container.decode(UUID.self, forKey: .storeID)
         views = (try? container.decodeIfPresent(Int.self, forKey: .views)) ?? 0
+        offerPrice = (try? container.decodeIfPresent(Double.self, forKey: .offerPrice)) ?? 0
     }
 
     var isAvailable: Bool {
@@ -438,6 +441,7 @@ struct SupabaseOffer: Decodable {
             pickupWindow: pickupWindow,
             distanceInMiles: distanceInMiles(from: userCoordinate, to: coordinate),
             quantityDescription: "\(views) views",
+            price: offerPrice,
             dietaryTags: [],
             coordinate: coordinate,
             postedAt: postedTime ?? Date(),
