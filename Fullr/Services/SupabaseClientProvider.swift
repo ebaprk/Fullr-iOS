@@ -40,27 +40,48 @@ struct FullrSupabaseClient {
         )
     }
 
-    func signUp(name: String, email: String, password: String) async throws -> SupabaseAuthResponse {
-        try await post(
-            path: authURLComponents(path: "signup"),
-            body: SignUpCredentials(email: email, password: password, data: name.isEmpty ? nil : ["name": name])
+    func signUp(firstName: String, lastName: String, email: String, password: String) async throws -> SupabaseAuthResponse {
+        var components = authURLComponents(path: "signup")
+        components.queryItems = [URLQueryItem(name: "redirect_to", value: "fullr://auth/callback")]
+
+        return try await post(
+            path: components,
+            body: SignUpCredentials(
+                email: email,
+                password: password,
+                data: [
+                    "account_type": "student",
+                    "first_name": firstName,
+                    "last_name": lastName
+                ]
+            )
         )
     }
 
-    func createStudentProfile(id: UUID, name: String, email: String) async throws {
-        let nameParts = name.split(separator: " ", maxSplits: 1).map(String.init)
-        let profile = StudentProfile(
-            studentID: id,
-            firstName: nameParts.first ?? "",
-            lastName: nameParts.dropFirst().first ?? "",
-            email: email
-        )
+    func session(fromAuthCallback url: URL) throws -> SupabaseStoredSession? {
+        guard url.scheme == "fullr", url.host == "auth", url.path == "/callback" else {
+            return nil
+        }
 
-        _ = try await post(
-            path: restURLComponents(path: "Student"),
-            body: profile,
-            prefer: "return=minimal",
-            expecting: EmptyResponse.self
+        let values = url.supabaseAuthParameters
+        guard let accessToken = values["access_token"], let refreshToken = values["refresh_token"] else {
+            return nil
+        }
+
+        let expiresAt: Date
+        if let expiresAtValue = values["expires_at"], let seconds = TimeInterval(expiresAtValue) {
+            expiresAt = Date(timeIntervalSince1970: seconds)
+        } else if let expiresInValue = values["expires_in"], let seconds = TimeInterval(expiresInValue) {
+            expiresAt = Date().addingTimeInterval(seconds)
+        } else {
+            expiresAt = Date().addingTimeInterval(3600)
+        }
+
+        return SupabaseStoredSession(
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+            expiresAt: expiresAt,
+            user: SupabaseAuthUser(id: UUID(), email: nil, userMetadata: [:])
         )
     }
 
@@ -362,6 +383,12 @@ struct SupabaseAuthUser: Codable {
         email = try container.decodeIfPresent(String.self, forKey: .email)
         userMetadata = (try? container.decodeIfPresent([String: String].self, forKey: .userMetadata)) ?? [:]
     }
+
+    init(id: UUID, email: String?, userMetadata: [String: String]) {
+        self.id = id
+        self.email = email
+        self.userMetadata = userMetadata
+    }
 }
 
 struct SupabaseOffer: Decodable {
@@ -534,21 +561,7 @@ private struct AuthCredentials: Encodable {
 private struct SignUpCredentials: Encodable {
     let email: String
     let password: String
-    let data: [String: String]?
-}
-
-private struct StudentProfile: Encodable {
-    let studentID: UUID
-    let firstName: String
-    let lastName: String
-    let email: String
-
-    private enum CodingKeys: String, CodingKey {
-        case studentID = "student_id"
-        case firstName = "first_name"
-        case lastName = "last_name"
-        case email
-    }
+    let data: [String: String]
 }
 
 private struct RefreshCredentials: Encodable {
@@ -578,6 +591,24 @@ private struct SupabaseErrorResponse: Decodable {
         case errorDescription = "error_description"
         case error
         case msg
+    }
+}
+
+private extension URL {
+    var supabaseAuthParameters: [String: String] {
+        var parameters: [String: String] = [:]
+
+        for item in URLComponents(url: self, resolvingAgainstBaseURL: false)?.queryItems ?? [] {
+            parameters[item.name] = item.value
+        }
+
+        guard let fragment else { return parameters }
+
+        for item in URLComponents(string: "?\(fragment)")?.queryItems ?? [] {
+            parameters[item.name] = item.value
+        }
+
+        return parameters
     }
 }
 
