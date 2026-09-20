@@ -59,6 +59,7 @@ struct OfferingDetailView: View {
 
                 VStack(alignment: .leading, spacing: 18) {
                     DetailSectionTitle(title: "The details")
+                    DetailInfoRow(title: "Price", value: offering.priceText, systemImage: "tag")
                     DetailInfoRow(title: "Pickup window", value: offering.pickupWindow, systemImage: "clock")
                     if !offering.quantityDescription.isEmpty {
                         DetailInfoRow(

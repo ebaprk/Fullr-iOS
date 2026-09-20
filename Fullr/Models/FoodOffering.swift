@@ -10,6 +10,7 @@ struct FoodOffering: Identifiable, Hashable {
     let pickupWindow: String
     let distanceInMiles: Double
     let quantityDescription: String
+    let price: Double
     let dietaryTags: [DietaryTag]
     let coordinate: CLLocationCoordinate2D
     let postedAt: Date
@@ -33,6 +34,11 @@ struct FoodOffering: Identifiable, Hashable {
             && providerType == offering.providerType
             && coordinate.latitude == offering.coordinate.latitude
             && coordinate.longitude == offering.coordinate.longitude
+    }
+
+    var priceText: String {
+        guard price > 0 else { return "Free" }
+        return price.formatted(.currency(code: "USD"))
     }
 }
 
