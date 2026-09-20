@@ -47,12 +47,22 @@ final class HomeViewModel: NSObject, CLLocationManagerDelegate {
             offerings = fetchedOfferings
         } catch {
             guard generation == loadGeneration else { return }
-            offerings = []
-            errorMessage = error.localizedDescription
+            if isCancellation(error) {
+                errorMessage = nil
+            } else {
+                offerings = []
+                errorMessage = error.localizedDescription
+            }
         }
         if generation == loadGeneration {
             isLoading = false
         }
+    }
+
+    private func isCancellation(_ error: Error) -> Bool {
+        if error is CancellationError { return true }
+        if let urlError = error as? URLError, urlError.code == .cancelled { return true }
+        return false
     }
 
     func requestLocationIfNeeded() {
