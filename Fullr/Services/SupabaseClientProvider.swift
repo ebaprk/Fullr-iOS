@@ -98,6 +98,33 @@ struct FullrSupabaseClient {
         )
     }
 
+    func incrementOfferViews(for offerID: UUID) async throws {
+        var components = restURLComponents(path: "Offers")
+        components.queryItems = [
+            URLQueryItem(name: "select", value: "views"),
+            URLQueryItem(name: "offer_id", value: "eq.\(offerID.uuidString)")
+        ]
+
+        let offers = try await get(
+            path: components,
+            accessToken: anonKey,
+            expecting: [SupabaseOfferViewCount].self
+        )
+        guard let currentViews = offers.first?.views else { return }
+
+        var updateComponents = restURLComponents(path: "Offers")
+        updateComponents.queryItems = [
+            URLQueryItem(name: "offer_id", value: "eq.\(offerID.uuidString)")
+        ]
+
+        _ = try await patch(
+            path: updateComponents,
+            body: SupabaseOfferViewUpdate(views: currentViews + 1),
+            prefer: "return=minimal",
+            expecting: EmptyResponse.self
+        )
+    }
+
     func fetchStores() async throws -> [SupabaseStore] {
         var components = restURLComponents(path: "Stores")
         components.queryItems = [
@@ -196,6 +223,29 @@ struct FullrSupabaseClient {
         request.httpMethod = "GET"
         request.setValue(anonKey, forHTTPHeaderField: "apikey")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+        return try await send(request: request, expecting: responseType)
+    }
+
+    private func patch<RequestBody: Encodable, ResponseBody: Decodable>(
+        path components: URLComponents,
+        body: RequestBody,
+        prefer: String? = nil,
+        expecting responseType: ResponseBody.Type = ResponseBody.self
+    ) async throws -> ResponseBody {
+        guard let url = components.url else {
+            throw AuthenticationError.invalidSupabaseURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PATCH"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(anonKey, forHTTPHeaderField: "apikey")
+        request.setValue("Bearer \(anonKey)", forHTTPHeaderField: "Authorization")
+        if let prefer {
+            request.setValue(prefer, forHTTPHeaderField: "Prefer")
+        }
+        request.httpBody = try JSONEncoder().encode(body)
 
         return try await send(request: request, expecting: responseType)
     }
@@ -417,6 +467,14 @@ struct SupabaseOffer: Decodable {
         let offerLocation = CLLocation(latitude: offerCoordinate.latitude, longitude: offerCoordinate.longitude)
         return userLocation.distance(from: offerLocation) / 1_609.344
     }
+}
+
+private struct SupabaseOfferViewCount: Decodable {
+    let views: Int
+}
+
+private struct SupabaseOfferViewUpdate: Encodable {
+    let views: Int
 }
 
 struct SupabaseStore: Decodable {

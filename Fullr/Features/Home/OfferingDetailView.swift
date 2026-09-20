@@ -4,6 +4,7 @@ import SwiftUI
 struct OfferingDetailView: View {
     let offering: FoodOffering
     let offeringService: FoodOfferingServicing
+    @State private var didIncrementView = false
 
     var body: some View {
         ScrollView {
@@ -87,6 +88,15 @@ struct OfferingDetailView: View {
             .frame(maxWidth: .infinity)
         }
         .modifier(DetailPageStyle(title: "Offer details"))
+        .task(id: offering.id) {
+            await incrementViewCountIfNeeded()
+        }
+    }
+
+    private func incrementViewCountIfNeeded() async {
+        guard !didIncrementView else { return }
+        didIncrementView = true
+        try? await offeringService.incrementViews(for: offering.id)
     }
 }
 

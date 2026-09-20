@@ -94,17 +94,6 @@ struct HomeView: View {
                         .foregroundStyle(FullrPalette.moss)
                 }
 
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Good food.\nCloser to home.")
-                        .font(FullrFont.medium(38, relativeTo: .largeTitle))
-                        .tracking(-1.4)
-                        .lineSpacing(-2)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityAddTraits(.isHeader)
-                    Text("A little local. A lot to love.")
-                        .font(FullrFont.regular(15, relativeTo: .subheadline))
-                        .foregroundStyle(FullrPalette.moss)
-                }
             }
             .frame(maxWidth: 680, alignment: .leading)
             .padding(.horizontal, 26)
@@ -175,7 +164,9 @@ struct HomeView: View {
                     }
                 }
             }
+            .padding(.horizontal, 24)
         }
+        .padding(.horizontal, -24)
         .scrollIndicators(.hidden)
     }
 
@@ -211,8 +202,10 @@ struct HomeView: View {
                         .accessibilityHint("Opens offer details")
                     }
                 }
+                .padding(.horizontal, 24)
                 .scrollTargetLayout()
             }
+            .padding(.horizontal, -24)
             .scrollTargetBehavior(.viewAligned)
             .scrollIndicators(.hidden)
         }
