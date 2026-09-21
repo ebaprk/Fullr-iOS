@@ -176,7 +176,7 @@ struct FullrSupabaseClient {
     }
 
     // Claim UUID arrays are used only as a server filter, never downloaded for cards.
-    private static let offerColumns = "offer_id,offer_name,posted_time,offer_end_time,offer_completed,offer_description,store_id,views"
+    private static let offerColumns = "offer_id,offer_name,posted_time,offer_end_time,offer_completed,offer_description,store_id,views,offer_price"
 
     func setClaimStatus(_ claimed: Bool, for offerID: UUID, session: SupabaseStoredSession) async throws -> Bool {
         let saved = try await post(
