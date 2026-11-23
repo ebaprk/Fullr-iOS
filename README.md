@@ -1,93 +1,61 @@
-# Fullr
+# Fullr for iOS
 
-Fullr is an iOS app for discovering nearby food offerings from restaurants, pantries, campus providers, and local businesses. The app helps students find available pickups, claim offers, view provider locations on a map, and see community impact stats around rescued food.
+An iOS app for discovering nearby food offerings from restaurants, pantries, campus providers, and local businesses. It is the student-facing companion to the [Fullr business web app](https://github.com/ebaprk/Fullr-WebApp).
 
 ## Features
 
-- Email/password authentication backed by Supabase.
-- Discover feed with search, provider filters, pickup radius controls, featured offers, and nearby listings.
-- Offer detail pages with provider information, claim status, pricing, pickup windows, and related offers from the same provider.
-- Map view with user location, nearby offer annotations, and compact offer cards.
-- Community stats with provider leaderboards, period filters, provider-type filters, and per-offer claim breakdowns.
-- Settings area with account details, claimed offers, pickup reminder preference, student-verified provider filtering, and sign out.
+- Email/password authentication through Supabase.
+- Searchable offer discovery with provider and pickup-radius filters.
+- Offer details, claim confirmation, and a saved claimed-offers list.
+- MapKit-based location browsing.
+- Provider leaderboards and per-offer claim statistics.
 
-## Tech Stack
+## Requirements
 
-- SwiftUI
-- Observation
-- MapKit and CoreLocation
-- Supabase REST/Auth APIs
-- Kingfisher for remote image loading
-- Bundled Outfit font
+- macOS with Xcode and an iOS SDK that supports the checked-in deployment targets.
+- iOS 26.0 or later for the app target.
+- Internet access to resolve Swift Package Manager dependencies.
 
-## Project Layout
+## Run locally
 
-```text
-Fullr/Fullr/
-├── App/                 Shared app state, styling, and tab navigation
-├── Features/
-│   ├── Home/            Discover feed, offer cards, and offer details
-│   ├── Login/           Sign in and sign up flows
-│   ├── Map/             Map-based offer discovery
-│   ├── Settings/        Account, preferences, and claimed offers
-│   └── Stats/           Claim leaderboards and provider stats
-├── Models/              App domain models and stats models
-├── Services/            Auth, food offering, stats, geocoding, and Supabase access
-├── Assets.xcassets      App icons, logo, and visual assets
-└── Fonts/               Outfit font and license
+```sh
+git clone https://github.com/ebaprk/Fullr-iOS.git
+cd Fullr-iOS
+open "Fullr.xcodeproj"
 ```
 
-The repository also includes `Kingfisher/` as the image-loading package dependency source.
+In Xcode, allow package resolution to finish, select the **Fullr** app scheme and a compatible simulator or connected iPhone, then build and run. For a device build, select your development team and update signing identifiers for your own environment.
 
-## Getting Started
+## Configuration
 
-1. Open the repository in Xcode.
-2. Select the Fullr app scheme.
-3. Choose an iOS simulator or connected iPhone.
-4. Build and run the app.
+Set your Supabase project URL and public anon/publishable key in `Fullr/Services/SupabaseClientProvider.swift`. Configure the `fullr://auth/callback` redirect for email confirmation and keep the app URL scheme aligned with Supabase Auth. The app uses lightweight REST/Auth service types rather than the Supabase Swift SDK; Kingfisher is resolved through Swift Package Manager.
 
-The app currently expects Supabase configuration in `Fullr/Fullr/Services/SupabaseClientProvider.swift`. The checked-in client points to the configured Fullr Supabase project and uses the public anon key. For another environment, update the Supabase URL and anon key there.
+The client expects shared `Offers` and `Stores` tables and the `get_offer_claim_status`, `set_offer_claim_status`, and `get_provider_claim_stats` RPCs. Follow the [database guide](supabase/README.md) for migration order and existing-schema checks. Student registration and business-owner registration have separate profile contracts; see the web app’s [mobile handoff](https://github.com/ebaprk/Fullr-WebApp/blob/main/MOBILE_AUTH_HANDOFF.md).
 
-## Supabase Integration
+## Project guide
 
-Fullr calls Supabase directly through lightweight service types instead of a generated client. The app uses:
+| Location | Purpose |
+| --- | --- |
+| [Fullr/App/](Fullr/App/) | App state, shared styles, and tab navigation. |
+| [Fullr/Features/](Fullr/Features/) | Discover, login, map, settings, and stats screens. |
+| [Fullr/Models/](Fullr/Models/) | Domain and statistics models. |
+| [Fullr/Services/](Fullr/Services/) | Authentication, offers, stats, geocoding, and Supabase transport. |
+| [Fullr/Resources/Fonts/](Fullr/Resources/Fonts/) | Bundled Outfit font and its license. |
+| [supabase/](supabase/) | Claim/statistics migrations and database notes. |
+| [Tests/](Tests/) | Focused Swift and SQL regression checks. |
 
-- Supabase Auth for sign in, sign up, session restore, token refresh, and sign out.
-- `Offers` and `Stores` REST tables for food offerings and provider metadata.
-- `get_offer_claim_status` and `set_offer_claim_status` RPC functions for claims.
-- `get_provider_claim_stats` RPC function for provider and offer leaderboards.
+## Verify changes
 
-The auth callback URL scheme is:
+On a Mac with the required Xcode/macOS toolchain, run:
 
-```text
-fullr://auth/callback
+```sh
+bash Tests/run-address-geocoder-tests.sh
+bash Tests/run-offer-claim-tests.sh
+bash Tests/run-stats-tests.sh
 ```
 
-## Design System
+These scripts compile for macOS 26.0. The [database guide](supabase/README.md) explains the separate PGlite SQL checks and manual authenticated verification. Claim totals represent current user confirmations; they do not establish completed pickups or lifetime redemption counts.
 
-Shared styling lives in `Fullr/Fullr/App/FullrStyle.swift`.
+## Design conventions
 
-The project palette is intentionally limited. Use only these colors anywhere color is specified:
-
-- `#FFF8D9`
-- `#AD8820`
-- `#90844A`
-- `#444F24`
-- `#212413`
-- `#122311`
-
-Do not introduce extra hex colors, named colors, system colors, gradients with other colors, or opacity-derived variants unless the palette is explicitly updated.
-
-## Development Notes
-
-- Prefer SwiftUI and async/await patterns.
-- Keep view-specific logic in feature view models.
-- Use the shared `FullrPalette`, `FullrFont`, and button/toggle styles for visual consistency.
-- Preserve the custom bottom navigation in `FullrTabView`.
-- Use previews and mock services where possible for UI iteration.
-
-## Assets and Fonts
-
-Fullr bundles the Outfit font under `Fullr/Fullr/Fonts/`. The font license is included in `OFL.txt`.
-
-Remote provider images are loaded through Kingfisher when image URLs are available from Supabase.
+Use `Fullr/App/FullrStyle.swift` and the palette defined in [AGENTS.md](AGENTS.md). Keep view logic in feature view models and preserve the shared navigation and component styles. The bundled Outfit font’s license is [included with the font](Fullr/Resources/Fonts/OFL.txt).
