@@ -59,3 +59,9 @@ These scripts compile for macOS 26.0. The [database guide](supabase/README.md) e
 ## Design conventions
 
 Use `Fullr/App/FullrStyle.swift` and the palette defined in [AGENTS.md](AGENTS.md). Keep view logic in feature view models and preserve the shared navigation and component styles. The bundled Outfit font’s license is [included with the font](Fullr/Resources/Fonts/OFL.txt).
+
+## License
+
+Original software and documentation are licensed under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for copyright, attribution, and the scope of this grant. Third-party materials retain their own terms.
+
+The bundled Outfit font remains under the [SIL Open Font License 1.1](Fullr/Resources/Fonts/OFL.txt).

@@ -1,0 +1,10 @@
+Fullr for iOS
+https://github.com/ebaprk/Fullr-iOS
+
+Copyright 2026 Abe Park
+
+The Apache License, Version 2.0 in LICENSE applies to original software and documentation contributed by Abe Park, except as identified below. Existing copyright, authorship, attribution, and license notices are retained.
+
+Third-party dependencies, datasets, fonts, images, logos, and other third-party materials retain their own terms. This project's license does not relicense those materials or grant additional rights to them.
+
+The bundled Outfit font is Copyright 2021 The Outfit Project Authors (https://github.com/Outfitio/Outfit-Fonts) and is licensed under the SIL Open Font License, Version 1.1. Its complete license is retained at Fullr/Resources/Fonts/OFL.txt. The font is not relicensed under Apache-2.0.
